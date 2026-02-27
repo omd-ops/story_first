@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+@font-face {
+  font-family: 'Helvetica Now Display';
+  src: local('Helvetica Neue'), local('Helvetica'), local('Arial');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'ABC Arizona Mix';
+  src: local('Georgia'), local('Times New Roman'), local('serif');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Brightwall';
+  src: local('Brush Script MT'), local('Lucida Handwriting'), local('cursive');
+  font-weight: 400;
+  font-style: normal;
+}

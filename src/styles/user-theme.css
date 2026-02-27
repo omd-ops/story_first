@@ -1,0 +1,208 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  
+  /* StoryFirst Light Theme - Nike Run Club Inspired */
+  --background: #FFFFFF; /* Clean white background */
+  --background-elevated: #F8F8F8; /* Soft off-white for cards */
+  --background-secondary: #F0F0F0; /* Light gray for sections */
+  --foreground: #000000; /* Black text */
+  
+  --secondary-text: #6B6B6B; /* Medium gray text */
+  --tertiary-text: #999999; /* Light gray text */
+  
+  /* Primary accents - Orange and Blue */
+  --accent-orange: #FF8B3D;
+  --accent-orange-dark: #E67A2E;
+  --accent-blue: #0066FF;
+  --accent-blue-dark: #0052CC;
+  
+  /* Secondary accents - Yellow and Pink for achievements/highlights */
+  --accent-yellow: #FFD166;
+  --accent-yellow-dark: #FFC233;
+  --accent-pink: #FF6B9D;
+  --accent-pink-dark: #FF4081;
+  
+  /* Supporting colors */
+  --accent-purple: #6B5B95;
+  --accent-green: #7CB342;
+  
+  --border: rgba(0, 0, 0, 0.08); /* Subtle border */
+  --border-medium: rgba(0, 0, 0, 0.15); /* Medium border */
+  --input-background: #FFFFFF;
+  
+  /* Legacy compatibility */
+  --card: #F8F8F8;
+  --card-foreground: #000000;
+  --popover: #FFFFFF;
+  --popover-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0F0F0;
+  --secondary-foreground: #000000;
+  --muted: #F8F8F8;
+  --muted-foreground: #6B6B6B;
+  --accent: #FF8B3D;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EA526F;
+  --destructive-foreground: #FFFFFF;
+  --input: transparent;
+  --switch-background: #E0E0E0;
+  --ring: #FF8B3D;
+  
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+  --font-weight-black: 800;
+  --radius: 1rem;
+  
+  /* Font families - Nike Run Club inspired */
+  --font-bebas: 'Bebas Neue', 'Impact', sans-serif; /* Bold impact moments */
+  --font-brightwall: 'Playfair Display', Georgia, serif; /* Accent font for emphasis */
+  --font-helvetica: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Helvetica', sans-serif; /* Body and UI */
+  --font-arizona: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; /* Longer titles */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-elevated: var(--background-elevated);
+  --color-foreground: var(--foreground);
+  --color-secondary-text: var(--secondary-text);
+  --color-accent-orange: var(--accent-orange);
+  --color-accent-orange-dark: var(--accent-orange-dark);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-green: var(--accent-green);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-helvetica);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+
+  /* Video Progress Slider Styling */
+  input[type="range"].video-progress {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"].video-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  input[type="range"].video-progress::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  input[type="range"].video-progress::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+
+  input[type="range"].video-progress::-moz-range-thumb:hover {
+    transform: scale(1.1);
+  }
+
+  /* Hide scrollbar for iOS-style time picker */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
