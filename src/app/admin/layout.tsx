@@ -1,29 +1,39 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import "@/styles/index.css";
 
+export const metadata: Metadata = {
+  title: "Admin",
+  description: `Content management and user administration interface`,
+};
+
 export default async function AdminLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    const supabase = await createSupabaseServer();
+  //   const supabase = await createSupabaseServer();
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+  //   const {
+  //     data: { user },
+  //   } = await supabase.auth.getUser();
 
-    if (!user) redirect("/auth/phone");
+  //   if (!user) redirect("/");
 
-    const { data: profile } = await supabase
-        .from("users")
-        .select("status")
-        .eq("id", user.id)
-        .single();
+  //   const { data: profile } = await supabase
+  //     .from("users")
+  //     .select("status")
+  //     .eq("id", user.id)
+  //     .single();
 
-    if (!profile || profile.status === "pending") {
-        redirect("/onboarding");
-    }
+  //   if (!profile || profile.status === "pending") {
+  //     redirect("/onboarding");
+  //   }
 
-    return <>{children}</>;
+  return (
+    <div className="admin-layout">
+      <section>{children}</section>
+    </div>
+  );
 }

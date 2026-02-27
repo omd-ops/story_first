@@ -1,13 +1,15 @@
 export type OnboardingStep =
-  | 'phone'
-  | 'verify'
-  | 'profile'
-  | 'waitlist'
-  | 'goals'
-  | 'journey'
-  | 'invite'
-  | 'solo-confirm'
-  | 'schedule';
+  | "phone"
+  | "verify"
+  | "profile"
+  | "waitlist"
+  | "goals"
+  | "journey"
+  | "invite"
+  | "solo-confirm"
+  | "schedule"
+  | "lesson"
+  | "orientation";
 
 export interface OnboardingFormData {
   countryCode: string;
@@ -18,14 +20,16 @@ export interface OnboardingFormData {
   displayName: string;
   selectedGoals: string[];
   goalDetails: { [key: string]: string };
-  journeyMode: 'friends' | 'solo' | null;
-  invites: { type: 'phone' | 'email'; value: string }[];
+  journeyMode: "friends" | "solo" | null;
+  invites: { type: "phone" | "email"; value: string }[];
   scheduleDays: string[];
   scheduleTime: { hour: number; minute: number; period: string };
   timezone: string;
 }
 
-export type SetFormData = React.Dispatch<React.SetStateAction<OnboardingFormData>>;
+export type SetFormData = React.Dispatch<
+  React.SetStateAction<OnboardingFormData>
+>;
 export type SetStep = React.Dispatch<React.SetStateAction<OnboardingStep>>;
 
-export type TimeField = 'hour' | 'minute' | 'period';
+export type TimeField = "hour" | "minute" | "period";

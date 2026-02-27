@@ -1,7 +1,7 @@
 @import './fonts.css';
 @import './tailwind.css';
-@import './theme.css';
 @import './user-theme.css';
+@import './theme.css';
 
 /* ReactFlow customizations */
 .react-flow__node {
