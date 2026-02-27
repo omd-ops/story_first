@@ -1,19 +1,10 @@
 "use client";
 
-import {
-  Bell,
-  User,
-  ChevronDown,
-  X,
-  UserPlus,
-  CheckCircle,
-  AlertCircle,
-  Clock,
-} from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
-import { Button } from "../ui/button";
+import { Bell, User, ChevronDown, X, UserPlus, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
+import { Button } from '../ui/button';
 
 interface AdminHeaderProps {
   onNavigate?: (screen: string) => void;
@@ -26,80 +17,80 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/");
+    router.push('/auth/phone');
   };
 
   // Mock notifications
   const notifications = [
     {
       id: 1,
-      type: "approval",
+      type: 'approval',
       icon: UserPlus,
-      iconBg: "bg-orange-100",
-      iconColor: "text-[var(--sf-orange)]",
-      title: "New User Pending Approval",
-      message: "Sarah Johnson is waiting for admin approval",
-      time: "5 minutes ago",
-      unread: true,
+      iconBg: 'bg-orange-100',
+      iconColor: 'text-[var(--sf-orange)]',
+      title: 'New User Pending Approval',
+      message: 'Sarah Johnson is waiting for admin approval',
+      time: '5 minutes ago',
+      unread: true
     },
     {
       id: 2,
-      type: "approval",
+      type: 'approval',
       icon: UserPlus,
-      iconBg: "bg-orange-100",
-      iconColor: "text-[var(--sf-orange)]",
-      title: "New User Pending Approval",
-      message: "Mike Chen is waiting for admin approval",
-      time: "12 minutes ago",
-      unread: true,
+      iconBg: 'bg-orange-100',
+      iconColor: 'text-[var(--sf-orange)]',
+      title: 'New User Pending Approval',
+      message: 'Mike Chen is waiting for admin approval',
+      time: '12 minutes ago',
+      unread: true
     },
     {
       id: 3,
-      type: "slack",
+      type: 'slack',
       icon: CheckCircle,
-      iconBg: "bg-green-100",
-      iconColor: "text-[var(--sf-green)]",
-      title: "Slack Notification Sent",
-      message: "New signup alert sent to #admin-notifications",
-      time: "1 hour ago",
-      unread: false,
+      iconBg: 'bg-green-100',
+      iconColor: 'text-[var(--sf-green)]',
+      title: 'Slack Notification Sent',
+      message: 'New signup alert sent to #admin-notifications',
+      time: '1 hour ago',
+      unread: false
     },
     {
       id: 4,
-      type: "approval",
+      type: 'approval',
       icon: UserPlus,
-      iconBg: "bg-orange-100",
-      iconColor: "text-[var(--sf-orange)]",
-      title: "New User Pending Approval",
-      message: "Emma Davis is waiting for admin approval",
-      time: "2 hours ago",
-      unread: false,
+      iconBg: 'bg-orange-100',
+      iconColor: 'text-[var(--sf-orange)]',
+      title: 'New User Pending Approval',
+      message: 'Emma Davis is waiting for admin approval',
+      time: '2 hours ago',
+      unread: false
     },
     {
       id: 5,
-      type: "slack",
+      type: 'slack',
       icon: CheckCircle,
-      iconBg: "bg-green-100",
-      iconColor: "text-[var(--sf-green)]",
-      title: "Slack Notification Sent",
-      message: "User approval notification sent to #admin-notifications",
-      time: "3 hours ago",
-      unread: false,
-    },
+      iconBg: 'bg-green-100',
+      iconColor: 'text-[var(--sf-green)]',
+      title: 'Slack Notification Sent',
+      message: 'User approval notification sent to #admin-notifications',
+      time: '3 hours ago',
+      unread: false
+    }
   ];
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
     <>
       <header
         className="fixed top-0 left-64 right-0 h-16 bg-white border-b border-[var(--sf-border)] flex items-center justify-between px-8 z-10"
-        style={{ fontFamily: "var(--font-helvetica)" }}
+        style={{ fontFamily: 'var(--font-helvetica)' }}
       >
         <div className="flex items-center gap-4">
           <h1
             className="text-2xl tracking-wide text-[var(--sf-text-primary)]"
-            style={{ fontFamily: "var(--font-bebas)" }}
+            style={{ fontFamily: 'var(--font-bebas)' }}
           >
             Operations Dashboard
           </h1>
@@ -126,9 +117,7 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
               <div className="w-8 h-8 bg-[var(--sf-orange)] flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm text-[var(--sf-text-primary)]">
-                Admin
-              </span>
+              <span className="text-sm text-[var(--sf-text-primary)]">Admin</span>
               <ChevronDown className="w-4 h-4 text-[var(--sf-text-secondary)]" />
             </button>
 
@@ -137,7 +126,7 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
                 <button
                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => {
-                    onNavigate?.("settings");
+                    onNavigate?.('settings');
                     setShowProfileMenu(false);
                   }}
                 >
@@ -164,13 +153,12 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
               <div>
                 <h2
                   className="text-2xl tracking-wide"
-                  style={{ fontFamily: "var(--font-bebas)" }}
+                  style={{ fontFamily: 'var(--font-bebas)' }}
                 >
                   Notifications
                 </h2>
                 <p className="text-sm text-[var(--sf-text-muted)] mt-1">
-                  {unreadCount} unread notification
-                  {unreadCount !== 1 ? "s" : ""}
+                  {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
                 </p>
               </div>
               <button
@@ -185,9 +173,7 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                   <Bell className="w-12 h-12 text-gray-300 mb-3" />
-                  <p className="text-[var(--sf-text-secondary)]">
-                    No notifications
-                  </p>
+                  <p className="text-[var(--sf-text-secondary)]">No notifications</p>
                 </div>
               ) : (
                 <div className="divide-y divide-[var(--sf-border)]">
@@ -196,17 +182,12 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
                     return (
                       <div
                         key={notification.id}
-                        className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                          notification.unread ? "bg-blue-50/30" : ""
-                        }`}
+                        className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${notification.unread ? 'bg-blue-50/30' : ''
+                          }`}
                       >
                         <div className="flex gap-3">
-                          <div
-                            className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${notification.iconBg}`}
-                          >
-                            <IconComponent
-                              className={`w-5 h-5 ${notification.iconColor}`}
-                            />
+                          <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${notification.iconBg}`}>
+                            <IconComponent className={`w-5 h-5 ${notification.iconColor}`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2 mb-1">
