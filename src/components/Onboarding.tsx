@@ -1,40 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { FeedbackButton } from './FeedbackButton';
-import { daysOfWeek, goalDescriptions, goalOptions } from './onboarding/constants';
-import { handleDayToggle } from './onboarding/actions/handleDayToggle';
-import { handleGoalToggle } from './onboarding/actions/handleGoalToggle';
-import { handleJourneySelect } from './onboarding/actions/handleJourneySelect';
-import { handleProfileSubmit } from './onboarding/actions/handleProfileSubmit';
-import { handleResendCode } from './onboarding/actions/handleResendCode';
-import { handleSendCode } from './onboarding/actions/handleSendCode';
-import { handleTimeChange } from './onboarding/actions/handleTimeChange';
-import { handleVerifyOTP } from './onboarding/actions/handleVerifyOTP';
-import { getMaskedPhone } from './onboarding/utils/getMaskedPhone';
-import { getStepNumber } from './onboarding/utils/getStepNumber';
-import { OnboardingFormData, OnboardingStep } from './onboarding/types';
-import { scheduleReminder } from '@/lib/reminders';
+import React, { useState, useEffect, useRef } from "react";
+import { Check, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { FeedbackButton } from "./FeedbackButton";
+import {
+  daysOfWeek,
+  goalDescriptions,
+  goalOptions,
+} from "./onboarding/constants";
+import { handleDayToggle } from "./onboarding/actions/handleDayToggle";
+import { handleGoalToggle } from "./onboarding/actions/handleGoalToggle";
+import { handleJourneySelect } from "./onboarding/actions/handleJourneySelect";
+import { handleProfileSubmit } from "./onboarding/actions/handleProfileSubmit";
+import { handleResendCode } from "./onboarding/actions/handleResendCode";
+import { handleSendCode } from "./onboarding/actions/handleSendCode";
+import { handleTimeChange } from "./onboarding/actions/handleTimeChange";
+import { handleVerifyOTP } from "./onboarding/actions/handleVerifyOTP";
+import { getMaskedPhone } from "./onboarding/utils/getMaskedPhone";
+import { getStepNumber } from "./onboarding/utils/getStepNumber";
+import { OnboardingFormData, OnboardingStep } from "./onboarding/types";
+import { scheduleReminder } from "@/lib/reminders";
 
 interface OnboardingProps {
   onComplete: () => void;
 }
 
 export function Onboarding({ onComplete }: OnboardingProps) {
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>('phone');
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>("phone");
   const [formData, setFormData] = useState<OnboardingFormData>({
-    countryCode: '+1',
-    phoneNumber: '',
-    otp: '',
-    fullName: '',
-    email: '',
-    displayName: '',
+    countryCode: "+1",
+    phoneNumber: "",
+    otp: "",
+    fullName: "",
+    email: "",
+    displayName: "",
     selectedGoals: [],
     goalDetails: {},
     journeyMode: null,
     invites: [],
-    scheduleDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-    scheduleTime: { hour: 8, minute: 0, period: 'AM' },
+    scheduleDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    scheduleTime: { hour: 8, minute: 0, period: "AM" },
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
   const [canResend, setCanResend] = useState(false);
@@ -43,10 +47,12 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showContactConfirmation, setShowContactConfirmation] = useState(false);
   const [scheduleStatus, setScheduleStatus] = useState<{
-    type: 'idle' | 'pending' | 'success' | 'error';
+    type: "idle" | "pending" | "success" | "error";
     message?: string;
-  }>({ type: 'idle' });
-  const [scheduleProviderErrors, setScheduleProviderErrors] = useState<string[]>([]);
+  }>({ type: "idle" });
+  const [scheduleProviderErrors, setScheduleProviderErrors] = useState<
+    string[]
+  >([]);
   const [isSchedulingReminder, setIsSchedulingReminder] = useState(false);
 
   const hourScrollRef = useRef<HTMLDivElement>(null);
@@ -55,7 +61,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   // OTP Timer
   useEffect(() => {
-    if (currentStep === 'verify' && !canResend) {
+    if (currentStep === "verify" && !canResend) {
       const timer = setInterval(() => {
         setResendTimer((prev) => {
           if (prev <= 1) {
@@ -85,15 +91,21 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
   const handleScheduleSave = async () => {
     if (formData.scheduleDays.length === 0) {
-      setScheduleStatus({ type: 'error', message: 'Pick at least one day for reminders.' });
+      setScheduleStatus({
+        type: "error",
+        message: "Pick at least one day for reminders.",
+      });
       return;
     }
     if (!formData.phoneNumber) {
-      setScheduleStatus({ type: 'error', message: 'We need a verified phone to send reminders.' });
+      setScheduleStatus({
+        type: "error",
+        message: "We need a verified phone to send reminders.",
+      });
       return;
     }
 
-    setScheduleStatus({ type: 'pending', message: 'Scheduling reminders…' });
+    setScheduleStatus({ type: "pending", message: "Scheduling reminders…" });
     setScheduleProviderErrors([]);
     setIsSchedulingReminder(true);
 
@@ -107,7 +119,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
       const hasTwilioFailure = response.twilioSuccess === false;
       setScheduleStatus({
-        type: response.success && !hasTwilioFailure ? 'success' : 'error',
+        type: response.success && !hasTwilioFailure ? "success" : "error",
         message: response.message,
       });
       setScheduleProviderErrors(response.providerErrors ?? []);
@@ -115,22 +127,23 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       if (response.success && response.twilioSuccess !== false) {
         // Send welcome SMS with magic link
         try {
-          const smsRes = await fetch('/api/reminders/send-welcome-sms', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          const smsRes = await fetch("/api/reminders/send-welcome-sms", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ phone: phoneForReminder }),
           });
           if (!smsRes.ok) {
-            console.warn('Welcome SMS failed:', await smsRes.text());
+            console.warn("Welcome SMS failed:", await smsRes.text());
           }
         } catch (smsErr) {
-          console.error('Welcome SMS error:', smsErr);
+          console.error("Welcome SMS error:", smsErr);
         }
         onComplete();
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to schedule reminders';
-      setScheduleStatus({ type: 'error', message });
+      const message =
+        error instanceof Error ? error.message : "Unable to schedule reminders";
+      setScheduleStatus({ type: "error", message });
       setScheduleProviderErrors([]);
     } finally {
       setIsSchedulingReminder(false);
@@ -144,9 +157,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         <div className="w-full max-w-xs mx-auto bg-[var(--background-elevated)] rounded-full h-1.5 overflow-hidden">
           <motion.div
             className="h-full bg-[var(--accent-orange)]"
-            initial={{ width: '0%' }}
+            initial={{ width: "0%" }}
             animate={{ width: `${(getStepNumber(currentStep) / 6) * 100}%` }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
       </div>
@@ -155,7 +168,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       <div className="flex-1 px-6 pb-32 overflow-y-auto">
         <AnimatePresence mode="wait">
           {/* SCREEN 1: Phone Number */}
-          {currentStep === 'phone' && (
+          {currentStep === "phone" && (
             <motion.div
               key="phone"
               initial={{ opacity: 0, y: 10 }}
@@ -165,9 +178,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             >
               <h1
                 className="text-5xl mb-4 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
-                Let&apos;s get you<span className="lg:hidden"><br /></span><span className="hidden lg:inline"> </span>started
+                Let&apos;s get you
+                <span className="lg:hidden">
+                  <br />
+                </span>
+                <span className="hidden lg:inline"> </span>started
               </h1>
               <p className="text-[var(--secondary-text)] mb-12 text-base">
                 We&apos;ll send you a one-time code to verify your number.
@@ -186,7 +203,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                     </button>
                     {showCountryPicker && (
                       <div className="absolute top-full mt-2 bg-white rounded overflow-hidden shadow-xl border border-[var(--border)] z-10 w-24">
-                        {['+1', '+44', '+91'].map((code) => (
+                        {["+1", "+44", "+91"].map((code) => (
                           <button
                             key={code}
                             onClick={() => {
@@ -201,13 +218,16 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Phone Input */}
                   <input
                     type="tel"
                     value={formData.phoneNumber}
                     onChange={(e) =>
-                      setFormData({ ...formData, phoneNumber: e.target.value.replace(/\D/g, '') })
+                      setFormData({
+                        ...formData,
+                        phoneNumber: e.target.value.replace(/\D/g, ""),
+                      })
                     }
                     placeholder="Phone number"
                     className="flex-1 bg-white border-b-2 border-[var(--border-medium)] px-0 py-4 text-black text-lg placeholder:text-[var(--secondary-text)] focus:outline-none focus:border-[var(--accent-orange)] transition-colors"
@@ -217,7 +237,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               </div>
 
               <button
-                onClick={() => handleSendCode(formData, setCurrentStep, setCanResend, setResendTimer)}
+                onClick={() =>
+                  handleSendCode(
+                    formData,
+                    setCurrentStep,
+                    setCanResend,
+                    setResendTimer,
+                  )
+                }
                 disabled={formData.phoneNumber.length < 10}
                 className="w-full bg-[var(--accent-orange)] hover:bg-[var(--accent-orange-dark)] text-white py-4 rounded-full font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed mb-6 shadow-md"
               >
@@ -225,13 +252,15 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               </button>
 
               <p className="text-xs text-[var(--secondary-text)] text-center leading-relaxed">
-                We only use your number for important<br />updates and reminders.
+                We only use your number for important
+                <br />
+                updates and reminders.
               </p>
             </motion.div>
           )}
 
           {/* SCREEN 1.5: OTP Verification */}
-          {currentStep === 'verify' && (
+          {currentStep === "verify" && (
             <motion.div
               key="verify"
               initial={{ opacity: 0, y: 10 }}
@@ -241,18 +270,23 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             >
               <h1
                 className="text-5xl mb-4 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
                 Enter the 6-Digit Code
               </h1>
-              <p className="text-[var(--secondary-text)] mb-12">Sent to {maskedPhone}</p>
+              <p className="text-[var(--secondary-text)] mb-12">
+                Sent to {maskedPhone}
+              </p>
 
               <div className="mb-12">
                 <input
                   type="text"
                   value={formData.otp}
                   onChange={(e) =>
-                    setFormData({ ...formData, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })
+                    setFormData({
+                      ...formData,
+                      otp: e.target.value.replace(/\D/g, "").slice(0, 6),
+                    })
                   }
                   placeholder="000000"
                   className="w-full bg-white border-b-2 border-[var(--border-medium)] px-0 py-4 text-black text-center text-3xl tracking-[0.5em] placeholder:text-[var(--tertiary-text)] placeholder:tracking-[0.3em] focus:outline-none focus:border-[var(--accent-orange)] transition-colors"
@@ -262,7 +296,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               </div>
 
               <button
-                onClick={() => handleVerifyOTP(formData, setCurrentStep)}
+                onClick={() =>
+                  handleVerifyOTP(formData, setCurrentStep, onComplete)
+                }
                 disabled={formData.otp.length !== 6}
                 className="w-full bg-[var(--accent-orange)] hover:bg-[var(--accent-orange-dark)] text-white py-4 rounded-full font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed mb-6 shadow-md"
               >
@@ -272,7 +308,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <div className="text-center">
                 {canResend ? (
                   <button
-                    onClick={() => handleResendCode(formData, setCanResend, setResendTimer, setFormData)}
+                    onClick={() =>
+                      handleResendCode(
+                        formData,
+                        setCanResend,
+                        setResendTimer,
+                        setFormData,
+                      )
+                    }
                     className="text-[var(--accent-orange)] text-sm font-semibold hover:text-[var(--accent-orange-dark)] transition-colors"
                   >
                     Resend code
@@ -287,7 +330,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           )}
 
           {/* SCREEN 2: Profile Setup */}
-          {currentStep === 'profile' && (
+          {currentStep === "profile" && (
             <motion.div
               key="profile"
               initial={{ opacity: 0, y: 10 }}
@@ -297,7 +340,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             >
               <h1
                 className="text-5xl mb-4 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
                 Tell Us a Little About You
               </h1>
@@ -310,7 +353,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   <input
                     type="text"
                     value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullName: e.target.value })
+                    }
                     placeholder="Full Name"
                     className="w-full bg-white border-b-2 border-[var(--border-medium)] px-0 py-4 text-black text-lg placeholder:text-[var(--secondary-text)] focus:outline-none focus:border-[var(--accent-orange)] transition-colors"
                   />
@@ -320,7 +365,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     placeholder="Email Address (Optional)"
                     className="w-full bg-white border-b-2 border-[var(--border-medium)] px-0 py-4 text-black text-lg placeholder:text-[var(--secondary-text)] focus:outline-none focus:border-[var(--accent-orange)] transition-colors"
                     autoComplete="email"
@@ -331,7 +378,9 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   <input
                     type="text"
                     value={formData.displayName}
-                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, displayName: e.target.value })
+                    }
                     placeholder="Display Name (Optional)"
                     className="w-full bg-white border-b-2 border-[var(--border-medium)] px-0 py-4 text-black text-lg placeholder:text-[var(--secondary-text)] focus:outline-none focus:border-[var(--accent-orange)] transition-colors"
                   />
@@ -352,7 +401,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           )}
 
           {/* SCREEN 3: Waitlist Confirmation */}
-          {currentStep === 'waitlist' && (
+          {currentStep === "waitlist" && (
             <motion.div
               key="waitlist"
               initial={{ opacity: 0, y: 10 }}
@@ -364,7 +413,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', duration: 0.6, bounce: 0.4 }}
+                transition={{ type: "spring", duration: 0.6, bounce: 0.4 }}
                 className="w-20 h-20 mx-auto mb-12 bg-[var(--accent-orange)] rounded-full flex items-center justify-center shadow-lg"
               >
                 <Check className="w-10 h-10 text-white" strokeWidth={2.5} />
@@ -372,9 +421,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
               <h1
                 className="text-5xl mb-6 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
-                Thanks for<br />Joining the<br />Waitlist!
+                Thanks for
+                <br />
+                Joining the
+                <br />
+                Waitlist!
               </h1>
               <p className="text-black text-lg mb-3 leading-relaxed font-medium">
                 We&apos;re excited to have you here.
@@ -384,7 +437,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               </p>
 
               <button
-                onClick={() => setCurrentStep('goals')}
+                onClick={() => setCurrentStep("goals")}
                 className="w-full bg-[var(--accent-orange)] hover:bg-[var(--accent-orange-dark)] text-white py-4 rounded-full font-semibold transition-all shadow-md"
               >
                 Continue
@@ -393,7 +446,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           )}
 
           {/* SCREEN 4: Storytelling Goals */}
-          {currentStep === 'goals' && (
+          {currentStep === "goals" && (
             <motion.div
               key="goals"
               initial={{ opacity: 0, y: 10 }}
@@ -403,11 +456,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             >
               <h1
                 className="text-4xl mb-4 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
                 What Do You Want to Work On?
               </h1>
-              <p className="text-[var(--secondary-text)] mb-2">Select all that apply</p>
+              <p className="text-[var(--secondary-text)] mb-2">
+                Select all that apply
+              </p>
 
               <p className="text-xs text-[var(--accent-orange)] mb-10 leading-relaxed font-semibold">
                 This helps us match you with like-minded people
@@ -422,15 +477,18 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                         onClick={() => handleGoalToggle(goal, setFormData)}
                         className={`w-full text-left px-0 py-4 border-b-2 transition-all ${
                           isSelected
-                            ? 'border-[var(--accent-orange)] text-black'
-                            : 'border-[var(--border-medium)] text-[var(--secondary-text)] hover:text-black hover:border-[var(--border)]'
+                            ? "border-[var(--accent-orange)] text-black"
+                            : "border-[var(--border-medium)] text-[var(--secondary-text)] hover:text-black hover:border-[var(--border)]"
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-base font-medium">{goal}</span>
                           {isSelected && (
                             <div className="w-5 h-5 rounded-full bg-[var(--accent-orange)] flex items-center justify-center flex-shrink-0">
-                              <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                              <Check
+                                className="w-3 h-3 text-white"
+                                strokeWidth={3}
+                              />
                             </div>
                           )}
                         </div>
@@ -441,7 +499,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                         {isSelected && goalDescriptions[goal] && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
+                            animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden"
                           >
@@ -459,7 +517,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           )}
 
           {/* SCREEN 5: Journey Mode Selection */}
-          {currentStep === 'journey' && (
+          {currentStep === "journey" && (
             <motion.div
               key="journey"
               initial={{ opacity: 0, y: 10 }}
@@ -469,17 +527,26 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             >
               <h1
                 className="text-4xl mb-4 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
                 Do You Have People You Want to Join With?
               </h1>
               <p className="text-[var(--secondary-text)] mb-12 leading-relaxed">
-                Some journeys are powerful alone.<br />Some are better together.
+                Some journeys are powerful alone.
+                <br />
+                Some are better together.
               </p>
 
               <div className="space-y-4 mb-8">
                 <button
-                  onClick={() => handleJourneySelect('friends', formData, setFormData, setCurrentStep)}
+                  onClick={() =>
+                    handleJourneySelect(
+                      "friends",
+                      formData,
+                      setFormData,
+                      setCurrentStep,
+                    )
+                  }
                   className="w-full bg-white border-2 border-[var(--border)] hover:border-[var(--accent-orange)] rounded p-8 text-left transition-all group shadow-sm hover:shadow-lg"
                 >
                   <div className="flex items-start gap-4">
@@ -496,13 +563,22 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 </button>
 
                 <button
-                  onClick={() => handleJourneySelect('solo', formData, setFormData, setCurrentStep)}
+                  onClick={() =>
+                    handleJourneySelect(
+                      "solo",
+                      formData,
+                      setFormData,
+                      setCurrentStep,
+                    )
+                  }
                   className="w-full bg-white border-2 border-[var(--border)] hover:border-[var(--accent-orange)] rounded p-8 text-left transition-all group shadow-sm hover:shadow-lg"
                 >
                   <div className="flex items-start gap-4">
                     <div className="text-3xl">🌟</div>
                     <div className="flex-1">
-                      <h3 className="text-black text-xl font-semibold mb-2">No, I&apos;ll start solo</h3>
+                      <h3 className="text-black text-xl font-semibold mb-2">
+                        No, I&apos;ll start solo
+                      </h3>
                       <p className="text-sm text-[var(--secondary-text)] leading-relaxed">
                         Be matched with a goal-based circle
                       </p>
@@ -514,7 +590,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           )}
 
           {/* SCREEN 5a: Invite Friends */}
-          {currentStep === 'invite' && (
+          {currentStep === "invite" && (
             <motion.div
               key="invite"
               initial={{ opacity: 0, y: 10 }}
@@ -523,18 +599,26 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               className="max-w-md mx-auto pt-12 text-center"
             >
               <p className="text-[var(--secondary-text)] mb-8 leading-relaxed text-base">
-                Stories are better together.<br />Ready to build your circle?
+                Stories are better together.
+                <br />
+                Ready to build your circle?
               </p>
-              
+
               <h1
                 className="text-6xl mb-6 text-black leading-none"
-                style={{ fontFamily: 'var(--font-bebas)', letterSpacing: '0.01em' }}
+                style={{
+                  fontFamily: "var(--font-bebas)",
+                  letterSpacing: "0.01em",
+                }}
               >
-                Add Your<br />Friends
+                Add Your
+                <br />
+                Friends
               </h1>
 
               <p className="text-[var(--secondary-text)] mb-16 leading-relaxed text-base max-w-sm mx-auto">
-                Contact our team and we&apos;ll help you invite friends to join your private storytelling circle.
+                Contact our team and we&apos;ll help you invite friends to join
+                your private storytelling circle.
               </p>
 
               <button
@@ -547,7 +631,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           )}
 
           {/* SCREEN 5b: Solo Confirmation */}
-          {currentStep === 'solo-confirm' && (
+          {currentStep === "solo-confirm" && (
             <motion.div
               key="solo-confirm"
               initial={{ opacity: 0, y: 10 }}
@@ -559,16 +643,20 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
               <h1
                 className="text-5xl mb-6 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
-                Starting Solo is<br />Powerful Too
+                Starting Solo is
+                <br />
+                Powerful Too
               </h1>
               <p className="text-[var(--secondary-text)] mb-12 text-lg leading-relaxed">
-                We&apos;ll match you with a circle aligned<br />to your goals when the time is right.
+                We&apos;ll match you with a circle aligned
+                <br />
+                to your goals when the time is right.
               </p>
 
               <button
-                onClick={() => setCurrentStep('schedule')}
+                onClick={() => setCurrentStep("schedule")}
                 className="w-full bg-[var(--accent-orange)] hover:bg-[#E67A2E] text-white py-4 rounded-full font-medium transition-all"
               >
                 Continue
@@ -577,7 +665,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           )}
 
           {/* SCREEN 6: Schedule Setup */}
-          {currentStep === 'schedule' && (
+          {currentStep === "schedule" && (
             <motion.div
               key="schedule"
               initial={{ opacity: 0, y: 10 }}
@@ -587,17 +675,21 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             >
               <h1
                 className="text-5xl mb-4 text-black tracking-wide leading-tight"
-                style={{ fontFamily: 'var(--font-bebas)' }}
+                style={{ fontFamily: "var(--font-bebas)" }}
               >
                 When Should We Nudge You?
               </h1>
               <p className="text-[var(--secondary-text)] mb-12 leading-relaxed">
-                Choose when you&apos;d like to receive<br />reflection prompts and updates.
+                Choose when you&apos;d like to receive
+                <br />
+                reflection prompts and updates.
               </p>
 
               {/* Days of Week */}
               <div className="mb-10">
-                <label className="block text-black text-sm font-semibold mb-4">Days of the week</label>
+                <label className="block text-black text-sm font-semibold mb-4">
+                  Days of the week
+                </label>
                 <div className="grid grid-cols-7 gap-2">
                   {daysOfWeek.map((day) => {
                     const isSelected = formData.scheduleDays.includes(day.full);
@@ -607,8 +699,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                         onClick={() => handleDayToggle(day.full, setFormData)}
                         className={`aspect-square rounded-full font-semibold text-sm transition-all ${
                           isSelected
-                            ? 'bg-[var(--accent-orange)] text-white shadow-md'
-                            : 'bg-white border-2 border-[var(--border)] text-[var(--secondary-text)] hover:border-[var(--accent-orange)]/50'
+                            ? "bg-[var(--accent-orange)] text-white shadow-md"
+                            : "bg-white border-2 border-[var(--border)] text-[var(--secondary-text)] hover:border-[var(--accent-orange)]/50"
                         }`}
                       >
                         {day.short}
@@ -620,14 +712,18 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
               {/* Time Picker */}
               <div className="mb-10">
-                <label className="block text-black text-sm mb-4">Reminder Time</label>
-                
+                <label className="block text-black text-sm mb-4">
+                  Reminder Time
+                </label>
+
                 {/* Time Display Button */}
                 <button
                   onClick={() => setShowTimePicker(!showTimePicker)}
                   className="w-full px-4 py-3 bg-white border-2 border-[var(--border)] text-black rounded focus:outline-none hover:border-[var(--accent-orange)] transition-colors text-left shadow-sm"
                 >
-                  {formData.scheduleTime.hour}:{formData.scheduleTime.minute.toString().padStart(2, '0')} {formData.scheduleTime.period}
+                  {formData.scheduleTime.hour}:
+                  {formData.scheduleTime.minute.toString().padStart(2, "0")}{" "}
+                  {formData.scheduleTime.period}
                 </button>
 
                 {/* Refined Time Picker Modal */}
@@ -645,7 +741,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                         Done
                       </button>
                     </div>
-                    
+
                     {/* Time Picker Wheel */}
                     <div className="relative h-52 bg-[var(--background-elevated)] rounded-2xl overflow-hidden shadow-inner">
                       {/* Selection Bar - Warm Orange/Yellow with Soft Glow */}
@@ -653,61 +749,80 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                         <div className="absolute inset-0 bg-gradient-to-r from-[#FF8B3D] via-[#FFD166] to-[#FF8B3D] rounded-xl opacity-90"></div>
                         <div className="absolute inset-0 bg-gradient-to-r from-[#FF8B3D] via-[#FFD166] to-[#FF8B3D] rounded-xl blur-md opacity-40"></div>
                       </div>
-                      
+
                       {/* Gradient Overlays for soft fade */}
                       <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-[var(--background-elevated)] via-[var(--background-elevated)]/80 to-transparent pointer-events-none z-20"></div>
                       <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[var(--background-elevated)] via-[var(--background-elevated)]/80 to-transparent pointer-events-none z-20"></div>
-                      
+
                       <div className="flex h-full">
                         {/* Hour Picker */}
-                        <div className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth" ref={hourScrollRef}>
+                        <div
+                          className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth"
+                          ref={hourScrollRef}
+                        >
                           <div className="flex flex-col items-center">
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-                              <button
-                                key={h}
-                                onClick={() => handleTimeChange('hour', h, setFormData)}
-                                className={`py-2.5 px-4 transition-all duration-300 ease-out relative z-30 ${
-                                  formData.scheduleTime.hour === h
-                                    ? 'text-black text-2xl font-bold'
-                                    : 'text-[var(--secondary-text)] text-lg font-normal'
-                                }`}
-                              >
-                                {h}
-                              </button>
-                            ))}
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map(
+                              (h) => (
+                                <button
+                                  key={h}
+                                  onClick={() =>
+                                    handleTimeChange("hour", h, setFormData)
+                                  }
+                                  className={`py-2.5 px-4 transition-all duration-300 ease-out relative z-30 ${
+                                    formData.scheduleTime.hour === h
+                                      ? "text-black text-2xl font-bold"
+                                      : "text-[var(--secondary-text)] text-lg font-normal"
+                                  }`}
+                                >
+                                  {h}
+                                </button>
+                              ),
+                            )}
                           </div>
                         </div>
-                        
+
                         {/* Minute Picker */}
-                        <div className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth" ref={minuteScrollRef}>
+                        <div
+                          className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth"
+                          ref={minuteScrollRef}
+                        >
                           <div className="flex flex-col items-center">
-                            {Array.from({ length: 4 }, (_, i) => i * 15).map((m) => (
-                              <button
-                                key={m}
-                                onClick={() => handleTimeChange('minute', m, setFormData)}
-                                className={`py-2.5 px-4 transition-all duration-300 ease-out relative z-30 ${
-                                  formData.scheduleTime.minute === m
-                                    ? 'text-black text-2xl font-bold'
-                                    : 'text-[var(--secondary-text)] text-lg font-normal'
-                                }`}
-                              >
-                                {m.toString().padStart(2, '0')}
-                              </button>
-                            ))}
+                            {Array.from({ length: 4 }, (_, i) => i * 15).map(
+                              (m) => (
+                                <button
+                                  key={m}
+                                  onClick={() =>
+                                    handleTimeChange("minute", m, setFormData)
+                                  }
+                                  className={`py-2.5 px-4 transition-all duration-300 ease-out relative z-30 ${
+                                    formData.scheduleTime.minute === m
+                                      ? "text-black text-2xl font-bold"
+                                      : "text-[var(--secondary-text)] text-lg font-normal"
+                                  }`}
+                                >
+                                  {m.toString().padStart(2, "0")}
+                                </button>
+                              ),
+                            )}
                           </div>
                         </div>
-                        
+
                         {/* Period Picker (AM/PM) */}
-                        <div className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth" ref={periodScrollRef}>
+                        <div
+                          className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth"
+                          ref={periodScrollRef}
+                        >
                           <div className="flex flex-col items-center">
-                            {['AM', 'PM'].map((p) => (
+                            {["AM", "PM"].map((p) => (
                               <button
                                 key={p}
-                                onClick={() => handleTimeChange('period', p, setFormData)}
+                                onClick={() =>
+                                  handleTimeChange("period", p, setFormData)
+                                }
                                 className={`py-2.5 px-4 transition-all duration-300 ease-out relative z-30 ${
                                   formData.scheduleTime.period === p
-                                    ? 'text-black text-2xl font-bold'
-                                    : 'text-[var(--secondary-text)] text-lg font-normal'
+                                    ? "text-black text-2xl font-bold"
+                                    : "text-[var(--secondary-text)] text-lg font-normal"
                                 }`}
                               >
                                 {p}
@@ -723,10 +838,14 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
               {/* Timezone Selector */}
               <div className="mb-10">
-                <label className="block text-black text-sm font-semibold mb-4">Timezone</label>
-                <select 
+                <label className="block text-black text-sm font-semibold mb-4">
+                  Timezone
+                </label>
+                <select
                   value={formData.timezone}
-                  onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, timezone: e.target.value })
+                  }
                   className="w-full px-4 py-3 bg-white border-2 border-[var(--border)] text-black focus:outline-none focus:border-[var(--accent-orange)] transition-colors shadow-sm"
                 >
                   <option value="America/New_York">Eastern Time (ET)</option>
@@ -736,9 +855,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                   <option value="America/Anchorage">Alaska Time (AKT)</option>
                   <option value="Pacific/Honolulu">Hawaii Time (HT)</option>
                   <option value="Europe/London">London (GMT)</option>
-                  <option value="Europe/Paris">Central European Time (CET)</option>
+                  <option value="Europe/Paris">
+                    Central European Time (CET)
+                  </option>
                   <option value="Asia/Tokyo">Japan Time (JST)</option>
-                  <option value="Australia/Sydney">Australian Eastern Time (AET)</option>
+                  <option value="Australia/Sydney">
+                    Australian Eastern Time (AET)
+                  </option>
                 </select>
               </div>
 
@@ -748,18 +871,27 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
               <button
                 onClick={handleScheduleSave}
-                disabled={formData.scheduleDays.length === 0 || isSchedulingReminder}
+                disabled={
+                  formData.scheduleDays.length === 0 || isSchedulingReminder
+                }
                 className="w-full bg-[var(--accent-orange)] hover:bg-[#E67A2E] text-white py-4 rounded-full font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                {isSchedulingReminder ? 'Scheduling reminders…' : 'Save Schedule'}
+                {isSchedulingReminder
+                  ? "Scheduling reminders…"
+                  : "Save Schedule"}
               </button>
-              {scheduleStatus.type !== 'idle' && (
+              {scheduleStatus.type !== "idle" && (
                 <p
                   className={`mt-3 text-sm ${
-                    scheduleStatus.type === 'error' ? 'text-red-600' : 'text-green-600'
+                    scheduleStatus.type === "error"
+                      ? "text-red-600"
+                      : "text-green-600"
                   }`}
                 >
-                  {scheduleStatus.message ?? (scheduleStatus.type === 'error' ? 'Something went wrong.' : 'Reminders are ready.')}
+                  {scheduleStatus.message ??
+                    (scheduleStatus.type === "error"
+                      ? "Something went wrong."
+                      : "Reminders are ready.")}
                 </p>
               )}
               {scheduleProviderErrors.length > 0 && (
@@ -775,11 +907,11 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       </div>
 
       {/* Sticky CTA - Only for goals screen */}
-      {currentStep === 'goals' && (
+      {currentStep === "goals" && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[var(--border)] px-6 py-4 z-50">
           <div className="max-w-md mx-auto">
             <button
-              onClick={() => setCurrentStep('journey')}
+              onClick={() => setCurrentStep("journey")}
               disabled={formData.selectedGoals.length === 0}
               className="w-full bg-[var(--accent-orange)] hover:bg-[var(--accent-orange-dark)] text-white py-4 rounded-full font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-md"
             >
@@ -811,7 +943,12 @@ export function Onboarding({ onComplete }: OnboardingProps) {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', duration: 0.6, bounce: 0.4, delay: 0.1 }}
+                transition={{
+                  type: "spring",
+                  duration: 0.6,
+                  bounce: 0.4,
+                  delay: 0.1,
+                }}
                 className="w-20 h-20 mx-auto mb-8 bg-[var(--accent-orange)] rounded-full flex items-center justify-center shadow-lg"
               >
                 <Check className="w-10 h-10 text-white" strokeWidth={2.5} />
