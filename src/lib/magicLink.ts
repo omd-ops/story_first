@@ -1,13 +1,14 @@
 import crypto from 'crypto';
 
 const SECRET = process.env.MAGIC_LINK_SECRET || 'dev-secret-change-in-prod';
-const DEFAULT_MAGIC_LINK_REDIRECT = '/local?view=lesson&day=1';
+const DEFAULT_MAGIC_LINK_REDIRECT = '/users?view=lesson&day=1';
 
 function getMagicLinkRedirectPath() {
   const configured = process.env.MAGIC_LINK_REDIRECT?.trim();
   if (!configured) return DEFAULT_MAGIC_LINK_REDIRECT;
   // Only allow internal redirects.
   if (!configured.startsWith('/')) return DEFAULT_MAGIC_LINK_REDIRECT;
+  if (configured.startsWith('/users')) return DEFAULT_MAGIC_LINK_REDIRECT;
   return configured;
 }
 
@@ -39,6 +40,6 @@ export function verifyMagicToken(token: string, maxAge = 3600): string | null {
 
 export function createMagicLink(phone: string, baseUrl: string): string {
   const token = generateMagicToken(phone);
-  const redirectTo = getMagicLinkRedirectPath();
-  return `${baseUrl}/api/magic-link/verify?token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(redirectTo)}`;
+  // Redirect is resolved server-side to avoid stale client-provided paths.
+  return `${baseUrl}/api/magic-link/verify?token=${encodeURIComponent(token)}`;
 }

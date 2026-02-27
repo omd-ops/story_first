@@ -2,27 +2,27 @@ import { redirect } from "next/navigation";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 export default async function OnboardingLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  const supabase = await createSupabaseServer();
+    // const supabase = await createSupabaseServer();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // const {
+    //     data: { user },
+    // } = await supabase.auth.getUser();
 
-  if (!user) redirect("/");
+    // if (!user) redirect("/auth/phone");
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("status")
-    .eq("id", user.id)
-    .single();
+    // const { data: profile } = await supabase
+    //     .from("users")
+    //     .select("status")
+    //     .eq("id", user.id)
+    //     .single();
 
-  if (profile?.status === "active") {
-    redirect("/admin");
-  }
+    // if (profile?.status === "active") {
+    //     redirect("/admin");
+    // }
 
-  return <>{children}</>;
+    return <>{children}</>;
 }
