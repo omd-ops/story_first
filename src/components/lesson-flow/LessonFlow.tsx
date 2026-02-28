@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { AdminVideo } from '@/lib/types';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { IntroStep } from './IntroStep';
@@ -39,6 +40,27 @@ export function LessonFlow({ day, onClose, onComplete }: LessonFlowProps) {
     'Who was involved in that moment?',
     'What emotion did you feel most strongly?',
   ];
+
+  // if an admin has uploaded a custom video for this day we'll fetch it
+  const [dayVideoUrl, setDayVideoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/videos?day=${day}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: AdminVideo[]) => {
+        if (cancelled) return;
+        if (Array.isArray(data) && data.length > 0) {
+          setDayVideoUrl(data[0].playbackUrl);
+        }
+      })
+      .catch((_) => {
+        // ignore errors; fall back to built‑in assets
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [day]);
 
   const xpPerQuestion = [0, 10, 20]; // XP earned for each question
 
@@ -182,6 +204,7 @@ export function LessonFlow({ day, onClose, onComplete }: LessonFlowProps) {
                 formatTime={formatTime}
                 day={day}
                 lessonTitle={lessonTitle}
+                videoUrl={dayVideoUrl}
               />
             </motion.div>
           )}

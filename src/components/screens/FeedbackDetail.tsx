@@ -94,20 +94,20 @@ Keep bringing this courage to your work. You're discovering your authentic voice
         Back to Queue
       </Button>
 
-      <PageHeader 
+      <PageHeader
         title={`Grading Review - Day ${submission.user.currentDay}`}
         subtitle={`${submission.user.name} • ${submission.submittedDate}`}
         actions={
           <>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="text-[var(--sf-red)] border-[var(--sf-red)] hover:bg-[var(--sf-red)] hover:text-white"
               onClick={() => setShowRejectForm(!showRejectForm)}
             >
               <XCircle className="w-4 h-4 mr-2" />
               Reject & Rewrite
             </Button>
-            <Button 
+            <Button
               className="bg-[var(--sf-green)] hover:bg-[var(--sf-green)]/90"
               onClick={handleApprove}
             >
@@ -121,7 +121,7 @@ Keep bringing this courage to your work. You're discovering your authentic voice
       {/* User Info Card */}
       <div className="bg-white rounded-lg border border-[var(--sf-border)] p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 
+          <h3
             className="text-lg tracking-wide"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
@@ -170,7 +170,7 @@ Keep bringing this courage to your work. You're discovering your authentic voice
       {/* Original Prompt */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <h4 className="text-sm font-medium text-blue-900 mb-2">
-          Original {submission.type === 'qa' ? 'Question' : 'Challenge'} Prompt:
+          Original {(submission.type as string) === "qa" ? "Question" : "Challenge"} Prompt:
         </h4>
         <p className="text-sm text-blue-800">{submission.prompt}</p>
       </div>
@@ -179,7 +179,7 @@ Keep bringing this courage to your work. You're discovering your authentic voice
         {/* User Response */}
         <div className="bg-white rounded-lg border border-[var(--sf-border)] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 
+            <h3
               className="text-lg tracking-wide"
               style={{ fontFamily: 'var(--font-bebas)' }}
             >
@@ -214,7 +214,7 @@ Keep bringing this courage to your work. You're discovering your authentic voice
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-[var(--sf-orange)]" />
-              <h3 
+              <h3
                 className="text-lg tracking-wide"
                 style={{ fontFamily: 'var(--font-bebas)' }}
               >
@@ -241,22 +241,22 @@ Keep bringing this courage to your work. You're discovering your authentic voice
             </div>
           ) : (
             <div>
-              <textarea 
+              <textarea
                 rows={12}
                 className="w-full px-4 py-3 border border-[var(--sf-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)] text-sm"
                 value={editedFeedback}
                 onChange={(e) => setEditedFeedback(e.target.value)}
               />
               <div className="flex items-center gap-2 mt-3">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                   onClick={handleSaveEdit}
                 >
                   Save Changes
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="ghost"
                   onClick={() => setIsEditing(false)}
                 >
@@ -270,18 +270,18 @@ Keep bringing this courage to your work. You're discovering your authentic voice
 
       {/* AI Evaluation Scores */}
       <div className="mt-6 bg-white rounded-lg border border-[var(--sf-border)] p-6">
-        <h3 
+        <h3
           className="text-lg tracking-wide mb-4"
           style={{ fontFamily: 'var(--font-bebas)' }}
         >
-          {submission.type === 'qa' ? 'CORRECTNESS EVALUATION' : 'AI SCORING BREAKDOWN'}
+          {(submission.type as string) === "qa" ? "CORRECTNESS EVALUATION" : "AI SCORING BREAKDOWN"}
         </h3>
 
-        {submission.type === 'qa' ? (
+        {(submission.type as string) === "qa" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <p className="text-sm text-[var(--sf-text-muted)] mb-1">Evaluation</p>
-              <p 
+              <p
                 className="text-2xl text-[var(--sf-green)]"
                 style={{ fontFamily: 'var(--font-bebas)' }}
               >
@@ -300,17 +300,17 @@ Keep bringing this courage to your work. You're discovering your authentic voice
             {Object.entries(submission.aiFeedback.scores).map(([key, value]) => (
               <div key={key} className="text-center p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-[var(--sf-text-muted)] mb-1 capitalize">{key}</p>
-                <p 
-                  className={`text-2xl ${
+                  <p
+                    className={`text-2xl ${
                     value >= 8.5 ? 'text-[var(--sf-green)]' : 
                     value >= 7.0 ? 'text-[var(--sf-orange)]' : 
                     'text-[var(--sf-red)]'
-                  }`}
+                    }`}
                   style={{ fontFamily: 'var(--font-bebas)' }}
-                >
-                  {value}/10
-                </p>
-              </div>
+                  >
+                    {value}/10
+                  </p>
+                </div>
             ))}
           </div>
         )}
@@ -319,19 +319,19 @@ Keep bringing this courage to your work. You're discovering your authentic voice
       {/* Reject & Rewrite Form */}
       {showRejectForm && (
         <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-6">
-          <h3 
+          <h3
             className="text-lg tracking-wide mb-4 text-red-900"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
             REJECT AI FEEDBACK & WRITE NEW
           </h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-red-900 mb-2">
                 Rejection Reason (Internal Note)
               </label>
-              <textarea 
+              <textarea
                 rows={2}
                 className="w-full px-4 py-3 border border-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                 placeholder="Why is the AI feedback being rejected? (for tracking purposes)"
@@ -344,7 +344,7 @@ Keep bringing this courage to your work. You're discovering your authentic voice
               <label className="block text-sm text-red-900 mb-2">
                 New Feedback (Will be sent to user)
               </label>
-              <textarea 
+              <textarea
                 rows={10}
                 className="w-full px-4 py-3 border border-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
                 placeholder="Write entirely new feedback for the user..."
@@ -354,7 +354,7 @@ Keep bringing this courage to your work. You're discovering your authentic voice
             </div>
 
             <div className="flex items-center gap-2">
-              <Button 
+              <Button
                 className="bg-[var(--sf-red)] hover:bg-[var(--sf-red)]/90"
                 onClick={handleReject}
               >

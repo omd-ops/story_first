@@ -25,7 +25,7 @@ export function SettingsSection() {
 
   // Scroll-based selection handler - matches reference behavior
   const handleScroll = (
-    scrollRef: React.RefObject<HTMLDivElement>,
+    scrollRef: React.RefObject<HTMLDivElement | null>,
     items: any[],
     setter: (value: any) => void
   ) => {
@@ -83,7 +83,7 @@ export function SettingsSection() {
             <label className="block text-sm text-[var(--secondary-text)] mb-3">
               Reminder Time
             </label>
-            
+
             {/* Time Display Button */}
             <button
               onClick={() => setShowTimePicker(!showTimePicker)}
@@ -107,7 +107,7 @@ export function SettingsSection() {
                     Done
                   </button>
                 </div>
-                
+
                 {/* Time Picker Wheel */}
                 <div className="relative h-52 bg-[var(--background-elevated)] rounded-2xl overflow-hidden shadow-inner">
                   {/* Selection Bar - Warm Orange/Yellow with Soft Glow */}
@@ -115,11 +115,11 @@ export function SettingsSection() {
                     <div className="absolute inset-0 bg-gradient-to-r from-[#FF8B3D] via-[#FFD166] to-[#FF8B3D] rounded-xl opacity-90"></div>
                     <div className="absolute inset-0 bg-gradient-to-r from-[#FF8B3D] via-[#FFD166] to-[#FF8B3D] rounded-xl blur-md opacity-40"></div>
                   </div>
-                  
+
                   {/* Gradient Overlays for soft fade */}
                   <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-[var(--background-elevated)] via-[var(--background-elevated)]/80 to-transparent pointer-events-none z-20"></div>
                   <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[var(--background-elevated)] via-[var(--background-elevated)]/80 to-transparent pointer-events-none z-20"></div>
-                  
+
                   <div className="flex h-full">
                     {/* Hour Picker */}
                     <div className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth" ref={hourScrollRef} onScroll={() => handleScroll(hourScrollRef, hours, (h: number) => setSelectedTime({ ...selectedTime, hour: h }))}>
@@ -139,7 +139,7 @@ export function SettingsSection() {
                         ))}
                       </div>
                     </div>
-                    
+
                     {/* Minute Picker */}
                     <div className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth" ref={minuteScrollRef} onScroll={() => handleScroll(minuteScrollRef, minutes, (m: number) => setSelectedTime({ ...selectedTime, minute: m }))}>
                       <div className="flex flex-col items-center">
@@ -158,7 +158,7 @@ export function SettingsSection() {
                         ))}
                       </div>
                     </div>
-                    
+
                     {/* Period Picker (AM/PM) - Stack vertically without scroll */}
                     <div className="flex-1 relative overflow-y-auto scrollbar-hide py-20 scroll-smooth" ref={periodScrollRef} onScroll={() => handleScroll(periodScrollRef, periods, (p: string) => setSelectedTime({ ...selectedTime, period: p }))}>
                       <div className="flex flex-col items-center">

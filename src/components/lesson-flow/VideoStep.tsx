@@ -3,7 +3,22 @@ import { Play, Pause, ChevronRight, Clock, TrendingUp, Send, Mic, Check, X, Squa
 import { motion, AnimatePresence } from 'motion/react';
 import { LessonFlowFeedbackButton } from './LessonFlowFeedbackButton';
 
-export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSeek, onSkipBack, onSkipForward, onComplete, formatTime, day, lessonTitle }: any) {
+interface VideoStepProps {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  onPlayPause: () => void;
+  onSeek: (e: any) => void;
+  onSkipBack: () => void;
+  onSkipForward: () => void;
+  onComplete: () => void;
+  formatTime: (seconds: number) => string;
+  day: number;
+  lessonTitle: string;
+  videoUrl?: string | null;
+}
+
+export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSeek, onSkipBack, onSkipForward, onComplete, formatTime, day, lessonTitle, videoUrl,} : VideoStepProps) {
   const progress = (currentTime / duration) * 100;
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -90,7 +105,7 @@ export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSee
           crossOrigin="anonymous"
         >
           <source
-            src="https://assets.mixkit.co/videos/preview/mixkit-young-man-in-a-lecture-hall-4119-large.mp4"
+            src={ videoUrl || "https://assets.mixkit.co/videos/preview/mixkit-young-man-in-a-lecture-hall-4119-large.mp4" }
             type="video/mp4"
           />
         </video>
@@ -105,7 +120,7 @@ export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSee
             {lessonTitle}
           </h1>
         </div>
-        
+
         {/* Play Button Overlay - Only show when paused */}
         {!isPlaying && (
           <motion.button
@@ -141,7 +156,7 @@ export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSee
           {/* Single Line Progress Bar */}
           <div className="mb-6 px-2">
             <div className="h-0.5 bg-white/20 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-[#5B8DEE] transition-all duration-300"
                 style={{ width: `${(currentTime / duration) * 100}%` }}
               />
@@ -157,9 +172,9 @@ export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSee
             >
               <div className="relative w-12 h-12 flex items-center justify-center">
                 <RotateCcw className="w-7 h-7" strokeWidth={2.5} />
-                <span 
+                <span
                   className="absolute text-[10px] font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                  style={{ 
+                  style={{
                     fontFamily: 'var(--font-helvetica)'
                   }}
                 >
@@ -187,9 +202,9 @@ export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSee
             >
               <div className="relative w-12 h-12 flex items-center justify-center">
                 <RotateCw className="w-7 h-7" strokeWidth={2.5} />
-                <span 
+                <span
                   className="absolute text-[10px] font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                  style={{ 
+                  style={{
                     fontFamily: 'var(--font-helvetica)'
                   }}
                 >
@@ -203,4 +218,3 @@ export function VideoStep({ isPlaying, currentTime, duration, onPlayPause, onSee
     </div>
   );
 }
-

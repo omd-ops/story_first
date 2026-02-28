@@ -45,15 +45,18 @@ export function FeedbackSection() {
         </p>
       </div>
 
-      {feedbackData.map((item) => (
-        <FeedbackCard
-          key={item.week}
-          week={item.week}
-          isExpanded={expandedWeeks.includes(item.week)}
-          onToggle={() => toggleWeek(item.week)}
-          {...item}
-        />
-      ))}
+      {feedbackData.map((item) => {
+        const { week, ...rest } = item;
+        return (
+          <FeedbackCard
+            key={week}
+            week={week}
+            isExpanded={expandedWeeks.includes(week)}
+            onToggle={() => toggleWeek(week)}
+            {...rest}
+          />
+        );
+      })}
 
       <div className="text-center py-8 text-[var(--secondary-text)] text-sm">
         Grading is delivered weekly after completing at least 5 lessons

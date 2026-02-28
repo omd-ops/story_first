@@ -1,5 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
+  engineType      = "library"
   previewFeatures = ["partialIndexes"]
 }
 
@@ -9,19 +10,394 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  phone            String   @unique
-  email            String?
-  name             String
-  displayName      String?  @map("display_name")
-  status           String   @default("pending")
-  referralSource   String?  @map("referral_source")
-  signupGoal       String?  @map("signup_goal")
-  timezone         String?
-  smsTriggerTime   String?  @map("sms_trigger_time")
-  smsTriggerDays   Int[]
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @default(now()) @map("updated_at")
+  id                  String               @id @default(uuid())
+  phone               String               @unique
+  email               String?
+  name                String
+  displayName         String?              @map("display_name")
+  status              String               @default("pending")
+  referralSource      String?              @map("referral_source")
+  signupGoal          String?              @map("signup_goal")
+  timezone            String?
+  smsTriggerTime      String?              @map("sms_trigger_time")
+  smsTriggerDays      Int[]                @default([]) @map("sms_trigger_days")
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime             @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  userDetails         UserDetails?
+  userLessons         UserLesson[]
+  userResponses       UserResponse[]
+  smsLogs             SmsLog[]
+  userActivities      UserActivity[]
+  adminActionsAsAdmin AdminAction[]        @relation("AdminActionsAsAdmin")
+  adminActionsAsUser  AdminAction[]        @relation("AdminActionsAsUser")
+  friendContacts      FriendContact[]
+  circleMembers       CircleMember[]
+  grading             Grading[]
+  feedLikes           FeedLike[]
+  snoozedChallenges   SnoozedChallenge[]
+  celebrations        Celebration[]
+  feedbackSubmissions FeedbackSubmission[]
+
+  @@index([status])
   @@map("users")
+  @@schema("public")
+}
+
+model UserDetails {
+  userId               String   @id @map("user_id")
+  notes                String?
+  statusLevel          Int      @default(0) @map("status_level")
+  totalXp              Int      @default(0) @map("total_xp")
+  currentStreak        Int      @default(0) @map("current_streak")
+  longestStreak        Int      @default(0) @map("longest_streak")
+  lastCompletedDay     Int?     @map("last_completed_day")
+  pauseTokensRemaining Int      @default(3) @map("pause_tokens_remaining")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([statusLevel])
+  @@index([totalXp])
+  @@index([currentStreak])
+  @@index([lastCompletedDay])
+  @@map("user_details")
+  @@schema("public")
+}
+
+model UserLesson {
+  id                       String    @id @default(uuid())
+  userId                   String    @map("user_id")
+  lessonId                 String    @map("lesson_id")
+  status                   String    @default("locked")
+  unlockedAt               DateTime? @map("unlocked_at") @db.Timestamptz(6)
+  startedAt                DateTime? @map("started_at") @db.Timestamptz(6)
+  completedAt              DateTime? @map("completed_at") @db.Timestamptz(6)
+  sequentialUnlockOverride Boolean   @default(false) @map("sequential_unlock_override")
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson                   Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@index([status])
+  @@index([completedAt])
+  @@map("user_lessons")
+  @@schema("public")
+}
+
+model FriendContact {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  friendPhone String   @map("friend_phone")
+  friendName  String?  @map("friend_name")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([friendPhone])
+  @@map("friend_contacts")
+  @@schema("public")
+}
+
+model Lesson {
+  id                String             @id @default(uuid())
+  dayNumber         Int                @unique @map("day_number")
+  title             String
+  objective         String
+  status            String             @default("draft")
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lessonBlocks      LessonBlock[]
+  userLessons       UserLesson[]
+  userResponses     UserResponse[]
+  snoozedChallenges SnoozedChallenge[]
+  grading           Grading[]
+
+  @@index([status])
+  @@map("lessons")
+  @@schema("public")
+}
+
+model LessonBlock {
+  id                String             @id @default(uuid())
+  lessonId          String             @map("lesson_id")
+  type              String
+  orderIndex        Int                @map("order_index")
+  content           Json               @db.JsonB
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  lesson            Lesson             @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userResponses     UserResponse[]
+  snoozedChallenges SnoozedChallenge[] @relation("ChallengeBlock")
+
+  @@index([lessonId])
+  @@index([type])
+  @@index([orderIndex])
+  @@map("lesson_blocks")
+  @@schema("public")
+}
+
+model UserResponse {
+  id            String      @id @default(uuid())
+  userId        String      @map("user_id")
+  lessonId      String      @map("lesson_id")
+  blockId       String      @map("block_id")
+  type          String
+  responseType  String      @map("response_type")
+  content       String?
+  audioUrl      String?     @map("audio_url")
+  transcription String?
+  grading       Json        @db.JsonB
+  submittedAt   DateTime    @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson        Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonBlock   LessonBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  gradingRows   Grading[]
+
+  @@index([userId])
+  @@index([lessonId])
+  @@index([blockId])
+  @@index([submittedAt])
+  @@map("user_responses")
+  @@schema("public")
+}
+
+model SmsLog {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  lessonDay      Int      @map("lesson_day")
+  messageVariant String   @map("message_variant")
+  sentAt         DateTime @map("sent_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sentAt])
+  @@map("sms_logs")
+  @@schema("public")
+}
+
+model UserActivity {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  eventType String   @map("event_type")
+  oldValue  Json?    @map("old_value") @db.JsonB
+  newValue  Json?    @map("new_value") @db.JsonB
+  amount    Int?
+  metadata  Json?    @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("user_activity")
+  @@schema("public")
+}
+
+model AdminConfig {
+  id          String   @id @default(uuid())
+  configKey   String   @unique @map("config_key")
+  configValue Json     @map("config_value") @db.JsonB
+
+  @@map("admin_config")
+  @@schema("public")
+}
+
+// videos that administrators upload for specific days; users will fetch
+// the appropriate clip when they reach that day of the program.
+model AdminVideo {
+  id          String   @id @default(uuid())
+  day         Int
+  playbackUrl String   @map("playback_url")
+  muxAssetId  String?  @map("mux_asset_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([day])
+  @@map("admin_videos")
+  @@schema("public")
+}
+
+model AdminAction {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  userId     String   @map("user_id")
+  actionType String   @map("action_type")
+  oldValue   Json?    @map("old_value") @db.JsonB
+  newValue   Json     @map("new_value") @db.JsonB
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  admin      User     @relation("AdminActionsAsAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  user       User     @relation("AdminActionsAsUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+  @@map("admin_actions")
+  @@schema("public")
+}
+
+model AiPrompt {
+  id         String   @id @default(uuid())
+  name       String
+  promptType String   @map("prompt_type")
+  promptText String   @map("prompt_text")
+  rubric     Json?    @db.JsonB
+  isActive   Boolean  @default(true) @map("is_active")
+  version    Int      @default(1)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([promptType])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("ai_prompts")
+  @@schema("public")
+}
+
+model Circle {
+  id            String         @id @default(uuid())
+  name          String
+  type          String
+  goal          String?
+  whatsappLink  String?        @map("whatsapp_link")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  circleMembers CircleMember[]
+
+  @@index([type])
+  @@index([goal])
+  @@map("circles")
+  @@schema("public")
+}
+
+model CircleMember {
+  id       String   @id @default(uuid())
+  circleId String   @map("circle_id")
+  userId   String   @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at") @db.Timestamptz(6)
+  circle   Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([circleId, userId])
+  @@index([circleId])
+  @@index([userId])
+  @@map("circle_members")
+  @@schema("public")
+}
+
+model Grading {
+  id                   String       @id @default(uuid())
+  userId               String       @map("user_id")
+  responseId           String       @map("response_id")
+  lessonId             String       @map("lesson_id")
+  type                 String
+  transcription        String?
+  aiFeedback           Json         @map("ai_feedback") @db.JsonB
+  status               String       @default("pending")
+  finalFeedback        Json?        @map("final_feedback") @db.JsonB
+  adminEdits           Json?        @map("admin_edits") @db.JsonB
+  rejectionReason      String?      @map("rejection_reason")
+  regenerationAttempts Int          @default(0) @map("regeneration_attempts")
+  deliveredAt          DateTime?    @map("delivered_at") @db.Timestamptz(6)
+  createdAt            DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  user                 User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  response             UserResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  lesson               Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("grading")
+  @@schema("public")
+}
+
+model FeedContent {
+  id          String     @id @default(uuid())
+  type        String
+  title       String?
+  content     String
+  imageUrl    String?    @map("image_url")
+  author      String?
+  isPinned    Boolean    @default(false) @map("is_pinned")
+  publishedAt DateTime   @map("published_at") @db.Timestamptz(6)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  feedLikes   FeedLike[]
+
+  @@index([publishedAt])
+  @@index([type])
+  @@index([isPinned])
+  @@map("feed_content")
+  @@schema("public")
+}
+
+model FeedLike {
+  id        String      @id @default(uuid())
+  contentId String      @map("content_id")
+  userId    String      @map("user_id")
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  content   FeedContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, userId])
+  @@index([contentId])
+  @@index([userId])
+  @@map("feed_likes")
+  @@schema("public")
+}
+
+model SnoozedChallenge {
+  id               String      @id @default(uuid())
+  userId           String      @map("user_id")
+  lessonId         String      @map("lesson_id")
+  challengeBlockId String      @map("challenge_block_id")
+  snoozedAt        DateTime    @default(now()) @map("snoozed_at") @db.Timestamptz(6)
+  reminderAt       DateTime    @map("reminder_at") @db.Timestamptz(6)
+  reminderSentAt   DateTime?   @map("reminder_sent_at") @db.Timestamptz(6)
+  completedAt      DateTime?   @map("completed_at") @db.Timestamptz(6)
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson           Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  challengeBlock   LessonBlock @relation("ChallengeBlock", fields: [challengeBlockId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([reminderAt])
+  @@map("snoozed_challenges")
+  @@schema("public")
+}
+
+model Celebration {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  milestoneType  String   @map("milestone_type")
+  milestoneValue String   @map("milestone_value")
+  animationShown Boolean  @default(false) @map("animation_shown")
+  emailSent      Boolean  @default(false) @map("email_sent")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([milestoneType])
+  @@index([createdAt])
+  @@map("celebrations")
+  @@schema("public")
+}
+
+model FeedbackSubmission {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  category       String
+  screenName     String   @map("screen_name")
+  feedbackText   String   @map("feedback_text")
+  linearTicketId String?  @map("linear_ticket_id")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("feedback_submissions")
   @@schema("public")
 }

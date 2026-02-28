@@ -11,6 +11,8 @@ export function getStepNumber(currentStep: OnboardingStep) {
     invite: 5,
     'solo-confirm': 5,
     schedule: 6,
+    lesson: 7,
+    orientation: 8,
   };
 
   return stepMap[currentStep];

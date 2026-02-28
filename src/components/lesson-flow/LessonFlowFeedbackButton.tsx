@@ -177,11 +177,9 @@ export function LessonFlowFeedbackButton() {
                       value={feedbackText}
                       onChange={(e) => setFeedbackText(e.target.value)}
                       placeholder={
-                        feedbackType === 'feedback'
-                          ? 'What did you think about this experience?'
-                          : feedbackType === 'bug'
-                          ? 'Describe the issue you encountered...'
-                          : 'What feature or improvement would you like to see?'
+                        feedbackType === 'bug'
+                        ? 'Describe the issue you encountered...'
+                        : 'What feature or improvement would you like to see?'
                       }
                       rows={10}
                       className="w-full bg-[var(--background-elevated)] border-2 border-[var(--border)] rounded px-5 py-4 text-black placeholder-[var(--secondary-text)] resize-none focus:outline-none focus:border-[var(--accent-yellow)] transition-colors"

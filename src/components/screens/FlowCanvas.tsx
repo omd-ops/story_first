@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect } from "react";
 import ReactFlow, {
   Node,
   Edge,
@@ -17,7 +17,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { Video, MessageCircle, Target, Sparkles, Music, FileText, User, BookOpen, MessageSquare, CheckCircle } from 'lucide-react';
 
-type BlockType = 
+type BlockType =
   | 'intro' 
   | 'customized-message' 
   | 'audio' 
@@ -91,7 +91,7 @@ function CustomNode({ data }: { data: any }) {
   const colors = getBlockColor(data.blockType);
 
   return (
-    <div 
+    <div
       className="px-4 py-3 rounded-lg shadow-lg transition-all relative"
       style={{
         backgroundColor: colors.bg,
@@ -100,8 +100,8 @@ function CustomNode({ data }: { data: any }) {
       }}
     >
       {/* Input handle (left side) */}
-      <Handle 
-        type="target" 
+      <Handle
+        type="target"
         position={Position.Left}
         style={{
           width: '12px',
@@ -110,7 +110,7 @@ function CustomNode({ data }: { data: any }) {
           border: '2px solid white',
         }}
       />
-      
+
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.6)' }}>
           <Icon className="w-5 h-5" style={{ color: colors.border }} />
@@ -120,10 +120,10 @@ function CustomNode({ data }: { data: any }) {
           <div className="text-xs" style={{ color: '#666' }}>{data.type} · {formatDuration(data.duration)}</div>
         </div>
       </div>
-      
+
       {/* Output handle (right side) */}
-      <Handle 
-        type="source" 
+      <Handle
+        type="source"
         position={Position.Right}
         style={{
           width: '12px',
@@ -204,14 +204,16 @@ export function FlowCanvas({ blocks, onReorder, selectedBlockId, onSelectBlock }
   const onConnect = useCallback(
     (params: Connection) => {
       if (!params.source || !params.target) return;
-      
+
       setEdges((eds) => {
         // Remove any existing edge that points to the same target
         // This ensures each block has only ONE incoming connection
         const filtered = eds.filter((e) => e.target !== params.target);
-        
+
         const newEdge: Edge = {
           ...params,
+          source: params.source!,
+          target: params.target!,
           id: `e${params.source}-${params.target}`,
           type: 'smoothstep',
           animated: true,
@@ -221,7 +223,7 @@ export function FlowCanvas({ blocks, onReorder, selectedBlockId, onSelectBlock }
             color: '#FF9800',
           },
         };
-        
+
         return addEdge(newEdge, filtered);
       });
     },
@@ -242,14 +244,16 @@ export function FlowCanvas({ blocks, onReorder, selectedBlockId, onSelectBlock }
   const onEdgeUpdate = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
       if (!newConnection.source || !newConnection.target) return;
-      
+
       setEdges((els) => {
         // Remove old edge and any other edge pointing to the same target
         // This ensures each block has only ONE incoming connection
         const filtered = els.filter((e) => e.id !== oldEdge.id && e.target !== newConnection.target);
-        
+
         const newEdge: Edge = {
           ...newConnection,
+          source: newConnection.source!,
+          target: newConnection.target!,
           id: `e${newConnection.source}-${newConnection.target}`,
           type: 'smoothstep',
           animated: true,
@@ -277,7 +281,7 @@ export function FlowCanvas({ blocks, onReorder, selectedBlockId, onSelectBlock }
   return (
     <div className="bg-white rounded-lg border border-[var(--sf-border)] overflow-hidden" style={{ height: '600px' }}>
       <div className="flex items-center justify-between px-6 py-3 border-b border-[var(--sf-border)] bg-gray-50">
-        <h3 
+        <h3
           className="text-lg tracking-wide"
           style={{ fontFamily: 'var(--font-bebas)' }}
         >

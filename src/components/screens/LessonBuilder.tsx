@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '../shared/PageHeader';
 import { Button } from '../ui/button';
 import { GripVertical, Video, MessageCircle, Target, Play, Save, Upload, X, CheckCircle, AlertCircle, ArrowLeft, Music, FileText, User, BookOpen, MessageSquare, Sparkles, Plus, LayoutList, LayoutGrid } from 'lucide-react';
@@ -60,7 +60,7 @@ interface LessonBuilderProps {
 
 export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
   const [blocks, setBlocks] = useState<Block[]>([]);
-  
+
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [selectedBlockType, setSelectedBlockType] = useState<BlockType>('video');
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
@@ -73,6 +73,27 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // load any previously uploaded video for this day so the admin can replace it
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/videos?day=${day}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: Array<{ playbackUrl: string }>) => {
+        if (cancelled) return;
+        if (Array.isArray(data) && data.length > 0) {
+          setUploadedFile({ name: `day-${day}-video`, size: 0, url: data[0].playbackUrl });
+          setUploadState("success");
+          setUploadProgress(100);
+        }
+      })
+      .catch(() => {
+        // ignore errors, admin can upload normally
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [day]);
 
   // Block configuration state
   const [blockConfig, setBlockConfig] = useState({
@@ -101,23 +122,28 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
   });
 
   // Upload handlers
-  const handleFileSelect = (file: File) => {
+  // When an admin selects a file we send it to a backend endpoint that
+  // proxies the payload into Mux.  The server creates a direct upload with
+  // a public playback policy, streams the bytes to Mux, and then returns the
+  // public playback URL (if available).  This keeps secret keys off the
+  // client and ensures the video is hosted by Mux instead of locally.
+  const handleFileSelect = async (file: File) => {
     const isVideo = selectedBlockType === 'video';
     const isAudio = selectedBlockType === 'audio';
-    
+
     // Validate file type
     if (isVideo && !file.type.startsWith('video/')) {
       setUploadError('Please upload a video file');
       setUploadState('error');
       return;
     }
-    
+
     if (isAudio && !file.type.startsWith('audio/')) {
       setUploadError('Please upload an audio file');
       setUploadState('error');
       return;
     }
-    
+
     if (file.size > 2 * 1024 * 1024 * 1024) { // 2GB
       setUploadError('File size exceeds 2GB limit');
       setUploadState('error');
@@ -129,27 +155,51 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
     setUploadProgress(0);
     setUploadError(null);
 
+    // kick off a faux progress bar that will cap at 90%
     const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setUploadState('success');
-          setUploadedFile({
-            name: file.name,
-            size: file.size,
-            url: URL.createObjectURL(file)
-          });
-          return 100;
-        }
-        return prev + 10;
-      });
+      setUploadProgress((prev) => Math.min(prev + 5, 90));
     }, 200);
+
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("day", day.toString());
+
+      const headers: HeadersInit = {};
+      if (process.env.NEXT_PUBLIC_ADMIN_KEY) {
+        headers["x-admin-key"] = process.env.NEXT_PUBLIC_ADMIN_KEY;
+      }
+
+      const res = await fetch("/api/videos/upload", {
+        method: "POST",
+        headers,
+        body: form,
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Upload failed");
+      }
+
+      const data = await res.json();
+      // if mux returned a playback url, use it. otherwise fall back to object URL
+      const videoUrl = data.playbackUrl || URL.createObjectURL(file);
+      setUploadedFile({ name: file.name, size: file.size, url: videoUrl });
+      setUploadState("success");
+      setUploadProgress(100);
+    } catch (err: any) {
+      setUploadError(err?.message || "Upload error");
+      setUploadState("error");
+      setUploadProgress(0);
+    } finally {
+      clearInterval(interval);
+    }
   };
 
   const handleUploadClick = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    
+
     if (selectedBlockType === 'video') {
       input.accept = 'video/*';
     } else if (selectedBlockType === 'audio') {
@@ -157,7 +207,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
     } else {
       input.accept = 'image/*';
     }
-    
+
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) handleFileSelect(file);
@@ -243,14 +293,14 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
   const handleBlockDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    
+
     if (draggedIndex === null || draggedIndex === index) return;
-    
+
     const newBlocks = [...blocks];
     const draggedBlock = newBlocks[draggedIndex];
     newBlocks.splice(draggedIndex, 1);
     newBlocks.splice(index, 0, draggedBlock);
-    
+
     setBlocks(newBlocks);
     setDraggedIndex(index);
   };
@@ -273,7 +323,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
       mediaUrl: uploadedFile?.url,
       templateVars: blockConfig.templateVars,
       questions: selectedBlockType === 'qa' ? [
-        {
+              {
           id: 'q1',
           text: 'What story moment moved you today?',
           type: 'text'
@@ -284,9 +334,9 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
         responseType: 'text'
       } : undefined
     };
-    
+
     setBlocks([...blocks, newBlock]);
-    
+
     // Reset form
     setUploadState('idle');
     setUploadedFile(null);
@@ -337,7 +387,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
 
   return (
     <div>
-      <PageHeader 
+      <PageHeader
         title={`Day ${day} - Lesson Builder`}
         subtitle={`Building Day ${day} of 70`}
         actions={
@@ -365,7 +415,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
             {/* Day Configuration */}
             <div>
               <label className="block text-sm text-[var(--sf-text-secondary)] mb-2">Day Name</label>
-              <input 
+              <input
                 type="text"
                 value={dayName}
                 onChange={(e) => setDayName(e.target.value)}
@@ -376,7 +426,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
             {/* Add Block */}
             <div>
               <label className="block text-sm text-[var(--sf-text-secondary)] mb-2">Add Block</label>
-              <select 
+              <select
                 className="w-full px-4 py-2 bg-white border-2 border-[var(--sf-border)] rounded-lg text-[var(--sf-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)]"
                 value={selectedBlockType}
                 onChange={(e) => {
@@ -398,7 +448,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
               <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
                 <div className="sticky top-0 bg-white border-b border-[var(--sf-border)] px-6 py-4 flex items-center justify-between">
-                  <h3 
+                  <h3
                     className="text-lg tracking-wide"
                     style={{ fontFamily: 'var(--font-bebas)' }}
                   >
@@ -438,7 +488,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                           <p className="text-sm text-[var(--sf-text-secondary)] mb-3">
                             Drag and drop your {selectedBlockType === 'video' ? 'video' : selectedBlockType === 'audio' ? 'audio' : 'image'} here, or
                           </p>
-                          <Button 
+                          <Button
                             onClick={handleUploadClick}
                             className="bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                           >
@@ -463,7 +513,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                             </div>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
+                            <div
                               className="bg-[var(--sf-orange)] h-2 rounded-full transition-all duration-300"
                               style={{ width: `${uploadProgress}%` }}
                             />
@@ -481,7 +531,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
+                            <Button
                               onClick={handleRetry}
                               variant="outline"
                               className="flex-1"
@@ -512,14 +562,14 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
+                            <Button
                               onClick={handleReplace}
                               variant="outline"
                               size="sm"
                             >
                               Replace
                             </Button>
-                            <Button 
+                            <Button
                               onClick={handleRemove}
                               variant="outline"
                               size="sm"
@@ -538,7 +588,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                     selectedBlockType === 'personalization') && (
                     <div className="mb-6">
                       <label className="block text-sm text-[var(--sf-text-secondary)] mb-2">Content</label>
-                      <textarea 
+                      <textarea
                         rows={6}
                         value={blockConfig.content}
                         onChange={(e) => setBlockConfig({...blockConfig, content: e.target.value})}
@@ -564,7 +614,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                                 const after = text.substring(end);
                                 const newContent = before + '{username}' + after;
                                 setBlockConfig({
-                                  ...blockConfig, 
+                                  ...blockConfig,
                                   content: newContent,
                                   templateVars: [...new Set([...blockConfig.templateVars, '{username}'])]
                                 });
@@ -590,7 +640,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                                 const after = text.substring(end);
                                 const newContent = before + '{day}' + after;
                                 setBlockConfig({
-                                  ...blockConfig, 
+                                  ...blockConfig,
                                   content: newContent,
                                   templateVars: [...new Set([...blockConfig.templateVars, '{day}'])]
                                 });
@@ -615,7 +665,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                                 const after = text.substring(end);
                                 const newContent = before + '{streak}' + after;
                                 setBlockConfig({
-                                  ...blockConfig, 
+                                  ...blockConfig,
                                   content: newContent,
                                   templateVars: [...new Set([...blockConfig.templateVars, '{streak}'])]
                                 });
@@ -640,7 +690,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                                 const after = text.substring(end);
                                 const newContent = before + '{firstName}' + after;
                                 setBlockConfig({
-                                  ...blockConfig, 
+                                  ...blockConfig,
                                   content: newContent,
                                   templateVars: [...new Set([...blockConfig.templateVars, '{firstName}'])]
                                 });
@@ -665,7 +715,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                                 const after = text.substring(end);
                                 const newContent = before + '{completedLessons}' + after;
                                 setBlockConfig({
-                                  ...blockConfig, 
+                                  ...blockConfig,
                                   content: newContent,
                                   templateVars: [...new Set([...blockConfig.templateVars, '{completedLessons}'])]
                                 });
@@ -803,7 +853,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                   {selectedBlockType === 'challenge' && (
                     <div className="mb-6 space-y-4">
                       {/* Add Question Button */}
-                      <Button 
+                      <Button
                         onClick={() => {
                           if (challengeConfig.description.trim()) {
                             const newConfig: ChallengeConfig = {
@@ -870,7 +920,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                       <label className="block text-sm text-[var(--sf-text-secondary)] mb-2">Duration (seconds)</label>
-                      <input 
+                      <input
                         type="number"
                         value={blockConfig.duration}
                         onChange={(e) => setBlockConfig({...blockConfig, duration: parseInt(e.target.value) || 5})}
@@ -880,7 +930,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                     </div>
                     <div>
                       <label className="block text-sm text-[var(--sf-text-secondary)] mb-2">Background</label>
-                      <select 
+                      <select
                         className="w-full px-4 py-2 border border-[var(--sf-border)] rounded-lg"
                         value={blockConfig.backgroundType}
                         onChange={(e) => setBlockConfig({...blockConfig, backgroundType: e.target.value as any})}
@@ -896,13 +946,13 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                     <div className="mb-6">
                       <label className="block text-sm text-[var(--sf-text-secondary)] mb-2">Background Color</label>
                       <div className="flex gap-2">
-                        <input 
+                        <input
                           type="color"
                           value={blockConfig.backgroundColor}
                           onChange={(e) => setBlockConfig({...blockConfig, backgroundColor: e.target.value})}
                           className="h-10 w-20 border border-[var(--sf-border)] rounded-lg cursor-pointer"
                         />
-                        <input 
+                        <input
                           type="text"
                           value={blockConfig.backgroundColor}
                           onChange={(e) => setBlockConfig({...blockConfig, backgroundColor: e.target.value})}
@@ -913,7 +963,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                     </div>
                   )}
 
-                  <Button 
+                  <Button
                     onClick={() => {
                       handleAddBlock();
                       setIsBlockModalOpen(false);
@@ -953,53 +1003,57 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                   </div>
                 </div>
               ) : (() => {
-                const activeBlockIndex = selectedBlockId 
+                  const activeBlockIndex = selectedBlockId
                   ? blocks.findIndex(b => b.id === selectedBlockId)
-                  : 0;
-                const activeBlock = blocks[activeBlockIndex] || blocks[0];
-                const videoAsset = getVideoAssets(activeBlockIndex);
-                
-                // Only show video player for video blocks
-                if (activeBlock.type === 'video') {
-                  return (
-                    <div className="relative">
-                      <div className="aspect-video bg-[#2a2a2a] flex items-center justify-center relative overflow-hidden">
-                        <video 
-                          key={activeBlock.id}
-                          className="w-full h-full object-cover"
-                          poster={videoAsset.poster}
-                          controls
-                          autoPlay={false}
-                        >
-                          <source src={videoAsset.src} type="video/mp4" />
-                          Your browser does not support the video tag.
-                        </video>
+                    : 0;
+                  const activeBlock = blocks[activeBlockIndex] || blocks[0];
+                  const videoAsset = getVideoAssets(activeBlockIndex);
+
+                  // Only show video player for video blocks
+                  if (activeBlock.type === "video") {
+                    const previewSrc = activeBlock.mediaUrl || videoAsset.src;
+                    const poster = activeBlock.mediaUrl
+                      ? undefined
+                      : videoAsset.poster;
+                    return (
+                      <div className="relative">
+                        <div className="aspect-video bg-[#2a2a2a] flex items-center justify-center relative overflow-hidden">
+                          <video
+                            key={activeBlock.id}
+                            className="w-full h-full object-cover"
+                            poster={poster}
+                            controls
+                            autoPlay={false}
+                          >
+                            <source src={previewSrc} type="video/mp4" />
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
                       </div>
-                    </div>
-                  );
-                } else {
-                  // Show block type preview for non-video blocks
-                  const Icon = getBlockIcon(activeBlock.type);
-                  const colors = {
+                    );
+                  } else {
+                    // Show block type preview for non-video blocks
+                    const Icon = getBlockIcon(activeBlock.type);
+                    const colors = {
                     audio: { bg: '#1DD1A1', icon: '#059669' },
                     personalization: { bg: '#8B5CF6', icon: '#7C3AED' },
                     qa: { bg: '#3B82F6', icon: '#2563EB' },
                     challenge: { bg: '#FBBF24', icon: '#F59E0B' },
-                  };
+                    };
                   const color = colors[activeBlock.type as keyof typeof colors] || { bg: '#F97316', icon: '#EA580C' };
-                  
-                  return (
+
+                    return (
                     <div className="aspect-video flex items-center justify-center" style={{ backgroundColor: color.bg }}>
-                      <div className="text-center text-white">
+                        <div className="text-center text-white">
                         <Icon className="w-24 h-24 mx-auto mb-4 opacity-90" style={{ color: color.icon }} />
                         <p className="text-xl font-medium mb-2">{getBlockTypeLabel(activeBlock.type)}</p>
-                        {activeBlock.content && (
+                          {activeBlock.content && (
                           <p className="text-sm opacity-90 max-w-md mx-auto px-4">{activeBlock.content}</p>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                }
+                    );
+                  }
               })()}
             </div>
 
@@ -1010,9 +1064,9 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                 {blocks.length > 0 && blocks.map((block, i) => (
                   <div key={i} style={{ flex: '1' }} className="relative">
                     <span>{formatDuration(blocks.slice(0, i).reduce((sum, b) => sum + b.duration, 0))}</span>
-                    <div className="absolute top-5 left-0 w-px h-2 bg-gray-400"></div>
-                  </div>
-                ))}
+                      <div className="absolute top-5 left-0 w-px h-2 bg-gray-400"></div>
+                    </div>
+                  ))}
                 {blocks.length > 0 && (
                   <div style={{ flex: '1' }} className="relative">
                     <span>{formatDuration(blocks.reduce((sum, b) => sum + b.duration, 0))}</span>
@@ -1024,50 +1078,50 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
               <DndProvider backend={HTML5Backend}>
                 <div className="flex gap-1 items-stretch" style={{ minHeight: '80px' }}>
                   {blocks.length > 0 && blocks.map((block, index) => {
-                    const Icon = getBlockIcon(block.type);
-                    const colors = {
+                      const Icon = getBlockIcon(block.type);
+                      const colors = {
                       audio: { bg: '#1DD1A1', text: 'text-gray-900' },      // Mint Green
                       video: { bg: '#F97316', text: 'text-white' },         // Bright Orange
                       personalization: { bg: '#8B5CF6', text: 'text-white' },  // Purple/Violet
                       qa: { bg: '#3B82F6', text: 'text-white' },            // Bright Blue
                       challenge: { bg: '#FBBF24', text: 'text-gray-900' },  // Golden Yellow
-                    };
-                    const color = colors[block.type] || colors.video;
+                      };
+                      const color = colors[block.type] || colors.video;
 
-                    return (
-                      <div
-                        key={block.id}
-                        draggable
-                        onDragStart={(e) => handleBlockDragStart(e, index)}
-                        onDragOver={(e) => handleBlockDragOver(e, index)}
-                        onDragEnd={handleBlockDragEnd}
-                        onClick={() => setSelectedBlockId(block.id)}
-                        style={{ 
+                      return (
+                        <div
+                          key={block.id}
+                          draggable
+                          onDragStart={(e) => handleBlockDragStart(e, index)}
+                          onDragOver={(e) => handleBlockDragOver(e, index)}
+                          onDragEnd={handleBlockDragEnd}
+                          onClick={() => setSelectedBlockId(block.id)}
+                          style={{
                           flex: '1',
-                          backgroundColor: color.bg,
+                            backgroundColor: color.bg,
                           minWidth: '80px'
-                        }}
-                        className={`rounded cursor-move transition-all hover:opacity-90 ${color.text} p-2 flex flex-col justify-between ${
+                          }}
+                          className={`rounded cursor-move transition-all hover:opacity-90 ${color.text} p-2 flex flex-col justify-between ${
                           selectedBlockId === block.id ? 'ring-2 ring-[var(--sf-orange)] ring-offset-2 ring-offset-[#f5f5f5]' : ''
                         } ${draggedIndex === index ? 'opacity-50 scale-95' : 'opacity-100'}`}
-                      >
-                        <div className="flex items-start gap-1.5">
-                          <Icon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-medium truncate leading-tight">
-                              {block.title}
-                            </h4>
+                        >
+                          <div className="flex items-start gap-1.5">
+                            <Icon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-xs font-medium truncate leading-tight">
+                                {block.title}
+                              </h4>
+                            </div>
+                          </div>
+                          <div className="mt-auto pt-1">
+                            <p className="text-[10px] opacity-80">
+                              {formatDuration(block.duration)}
+                            </p>
                           </div>
                         </div>
-                        <div className="mt-auto pt-1">
-                          <p className="text-[10px] opacity-80">
-                            {formatDuration(block.duration)}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
+                      );
+                    })}
+
                   {blocks.length === 0 && (
                     <div className="w-full text-center py-12 text-gray-400">
                       <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
@@ -1076,7 +1130,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                   )}
                 </div>
               </DndProvider>
-              
+
               {/* Playhead indicator */}
               <div className="relative mt-4 h-1 bg-gray-300 rounded">
                 <div className="absolute left-0 top-0 w-0.5 h-1 bg-[var(--sf-orange)]"></div>
@@ -1088,13 +1142,13 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
         {/* Side Panel - Block Configuration */}
         <div className="col-span-3">
           <div className="bg-white rounded-lg border border-[var(--sf-border)] p-6 sticky top-6">
-            <h3 
+            <h3
               className="text-lg tracking-wide mb-4"
               style={{ fontFamily: 'var(--font-bebas)' }}
             >
               {selectedBlock ? 'Block Details' : 'Day Parameters'}
             </h3>
-            
+
             {selectedBlock ? (
               <div className="space-y-4">
                 <div>
@@ -1109,7 +1163,7 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                   <label className="block text-xs text-[var(--sf-text-muted)] mb-1">Background</label>
                   <p className="text-sm font-medium capitalize">{selectedBlock.background.type}</p>
                   {selectedBlock.background.value && (
-                    <div 
+                    <div
                       className="mt-2 w-full h-8 rounded border border-[var(--sf-border)]"
                       style={{ backgroundColor: selectedBlock.background.value }}
                     />
@@ -1121,8 +1175,8 @@ export function LessonBuilder({ day, onBack }: LessonBuilderProps) {
                     <p className="text-sm">{selectedBlock.content}</p>
                   </div>
                 )}
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full text-red-600 hover:bg-red-50"
                   onClick={() => {
                     setBlocks(blocks.filter(b => b.id !== selectedBlock.id));

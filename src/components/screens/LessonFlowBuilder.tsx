@@ -60,13 +60,15 @@ function DraggableBlock({ block, index, moveBlock }: DraggableBlockProps) {
     video: { bg: 'bg-orange-50', border: 'border-[var(--sf-orange)]', icon: 'text-[var(--sf-orange)]' },
     qa: { bg: 'bg-blue-50', border: 'border-blue-400', icon: 'text-blue-600' },
     challenge: { bg: 'bg-yellow-50', border: 'border-yellow-400', icon: 'text-yellow-600' },
-  };
+    };
 
   const colors = colorMap[block.type] || colorMap.intro;
 
   return (
     <div
-      ref={(node) => drag(drop(node))}
+      ref={(node) => {
+        drag(drop(node));
+      }}
       className={`${colors.bg} ${colors.border} border-2 rounded-lg p-3 w-[200px] cursor-move transition-all hover:shadow-md ${
         isDragging ? 'opacity-50 scale-95' : 'opacity-100'
       }`}
@@ -116,7 +118,7 @@ export function LessonFlowBuilder() {
         <div className="bg-white border-b border-[var(--sf-border)] px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 
+              <h1
                 className="text-2xl tracking-wide text-[var(--sf-text-primary)] mb-1"
                 style={{ fontFamily: 'var(--font-bebas)' }}
               >
@@ -180,7 +182,7 @@ export function LessonFlowBuilder() {
                     moveBlock={moveBlock}
                   />
                 ))}
-                
+
                 {/* Add Block Button */}
                 <button className="w-[200px] min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-[var(--sf-orange)] hover:bg-orange-50 transition-colors">
                   <Plus className="w-6 h-6 text-gray-400" />

@@ -14,71 +14,71 @@ export function CircleManagement() {
 
   // Seven default circles (one per goal type) - these are system-created
   const defaultCircles = [
-    { 
-      id: 1, 
+    {
+      id: 1,
       name: 'Writers Guild', 
-      members: 24, 
-      active: 18, 
+      members: 24,
+      active: 18,
       created: 'Jan 15, 2026', 
       description: 'Professional writers focused on long-form storytelling',
       goalType: 'Master storytelling craft',
       isDefault: true
     },
-    { 
-      id: 2, 
+    {
+      id: 2,
       name: 'Beginners Journey', 
-      members: 45, 
-      active: 38, 
+      members: 45,
+      active: 38,
       created: 'Jan 20, 2026', 
       description: 'New storytellers starting their practice',
       goalType: 'Build daily writing habit',
       isDefault: true
     },
-    { 
-      id: 3, 
+    {
+      id: 3,
       name: 'Advanced Storytellers', 
-      members: 12, 
-      active: 11, 
+      members: 12,
+      active: 11,
       created: 'Jan 22, 2026', 
       description: 'Experienced writers working on advanced techniques',
       goalType: 'Improve communication skills',
       isDefault: true
     },
-    { 
-      id: 4, 
+    {
+      id: 4,
       name: 'Creative Entrepreneurs', 
-      members: 31, 
-      active: 25, 
+      members: 31,
+      active: 25,
       created: 'Feb 1, 2026', 
       description: 'Business owners using storytelling for brand building',
       goalType: 'Build personal brand',
       isDefault: true
     },
-    { 
-      id: 5, 
+    {
+      id: 5,
       name: 'Public Speakers Circle', 
-      members: 18, 
-      active: 14, 
+      members: 18,
+      active: 14,
       created: 'Jan 18, 2026', 
       description: 'Members developing confident public speaking through stories',
       goalType: 'Prepare for speaking event',
       isDefault: true
     },
-    { 
-      id: 6, 
+    {
+      id: 6,
       name: 'Career Storytellers', 
-      members: 22, 
-      active: 19, 
+      members: 22,
+      active: 19,
       created: 'Jan 25, 2026', 
       description: 'Professionals crafting compelling career narratives',
       goalType: 'Advance my career',
       isDefault: true
     },
-    { 
-      id: 7, 
+    {
+      id: 7,
       name: 'Creative Expression Lab', 
-      members: 16, 
-      active: 13, 
+      members: 16,
+      active: 13,
       created: 'Feb 5, 2026', 
       description: 'Artists and creators exploring storytelling as creative outlet',
       goalType: 'Express myself creatively',
@@ -88,22 +88,22 @@ export function CircleManagement() {
 
   // Custom circles (admin-created for specific groups)
   const customCircles = [
-    { 
-      id: 101, 
+    {
+      id: 101,
       name: 'DevSavant Team', 
-      members: 8, 
-      active: 8, 
+      members: 8,
+      active: 8,
       created: 'Feb 8, 2026', 
       description: 'Internal team members from DevSavant organization',
       goalType: null,
       isDefault: false,
       isCustom: true
     },
-    { 
-      id: 102, 
+    {
+      id: 102,
       name: 'Marketing Professionals', 
-      members: 15, 
-      active: 12, 
+      members: 15,
+      active: 12,
       created: 'Feb 3, 2026', 
       description: 'Marketing and content professionals improving storytelling',
       goalType: null,
@@ -148,11 +148,11 @@ export function CircleManagement() {
 
   return (
     <div>
-      <PageHeader 
+      <PageHeader
         title="Circle Management"
         subtitle="Manage user groups and communities"
         actions={
-          <Button 
+          <Button
             className="bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
             onClick={() => setShowCreateModal(true)}
           >
@@ -166,7 +166,7 @@ export function CircleManagement() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-lg border border-[var(--sf-border)] p-4">
           <p className="text-sm text-[var(--sf-text-muted)] mb-1">Total Circles</p>
-          <p 
+          <p
             className="text-3xl text-[var(--sf-text-primary)]"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
@@ -175,7 +175,7 @@ export function CircleManagement() {
         </div>
         <div className="bg-white rounded-lg border border-[var(--sf-border)] p-4">
           <p className="text-sm text-[var(--sf-text-muted)] mb-1">Default Circles</p>
-          <p 
+          <p
             className="text-3xl text-blue-600"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
@@ -184,7 +184,7 @@ export function CircleManagement() {
         </div>
         <div className="bg-white rounded-lg border border-[var(--sf-border)] p-4">
           <p className="text-sm text-[var(--sf-text-muted)] mb-1">Custom Circles</p>
-          <p 
+          <p
             className="text-3xl text-purple-600"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
@@ -193,7 +193,7 @@ export function CircleManagement() {
         </div>
         <div className="bg-white rounded-lg border border-[var(--sf-border)] p-4">
           <p className="text-sm text-[var(--sf-text-muted)] mb-1">Pending Assignments</p>
-          <p 
+          <p
             className="text-3xl text-yellow-600"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
@@ -207,7 +207,7 @@ export function CircleManagement() {
         <div className="mb-8 bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <AlertCircle className="w-5 h-5 text-yellow-700" />
-            <h3 
+            <h3
               className="text-lg tracking-wide text-yellow-900"
               style={{ fontFamily: 'var(--font-bebas)' }}
             >
@@ -217,11 +217,11 @@ export function CircleManagement() {
           <p className="text-sm text-yellow-800 mb-4">
             These users have reached thresholds or requested circle access but haven't been assigned yet.
           </p>
-          
+
           <div className="space-y-3">
             {usersNeedingAssignment.map(user => (
-              <div 
-                key={user.id} 
+              <div
+                key={user.id}
                 className="bg-white rounded-lg border border-yellow-200 p-4 flex items-center justify-between"
               >
                 <div className="flex-1">
@@ -240,8 +240,8 @@ export function CircleManagement() {
                     <span className="text-yellow-700 text-xs italic">{user.reason}</span>
                   </div>
                 </div>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                   onClick={() => {
                     setUserToAssign(user);
@@ -261,7 +261,7 @@ export function CircleManagement() {
           <div key={circle.id} className="bg-white rounded-lg border border-[var(--sf-border)] p-6 hover:shadow-md transition-shadow">
             <div className="mb-4">
               <div className="flex items-center gap-2 mb-1">
-                <h3 
+                <h3
                   className="text-xl tracking-wide"
                   style={{ fontFamily: 'var(--font-bebas)' }}
                 >
@@ -272,7 +272,7 @@ export function CircleManagement() {
                     Default
                   </span>
                 )}
-                {circle.isCustom && (
+                {"isCustom" in circle && circle.isCustom && (
                   <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
                     Custom
                   </span>
@@ -295,7 +295,7 @@ export function CircleManagement() {
             <div className="flex items-center gap-6 mb-4">
               <div>
                 <p className="text-sm text-[var(--sf-text-muted)]">Total Members</p>
-                <p 
+                <p
                   className="text-2xl text-[var(--sf-text-primary)]"
                   style={{ fontFamily: 'var(--font-bebas)' }}
                 >
@@ -304,7 +304,7 @@ export function CircleManagement() {
               </div>
               <div>
                 <p className="text-sm text-[var(--sf-text-muted)]">Active</p>
-                <p 
+                <p
                   className="text-2xl text-[var(--sf-green)]"
                   style={{ fontFamily: 'var(--font-bebas)' }}
                 >
@@ -314,8 +314,8 @@ export function CircleManagement() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
                 className="flex-1"
                 onClick={() => {
@@ -326,8 +326,8 @@ export function CircleManagement() {
                 <Users className="w-3 h-3 mr-1" />
                 View Members
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="flex-1 bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                 onClick={() => {
                   setSelectedCircle(circle.id);
@@ -346,13 +346,13 @@ export function CircleManagement() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
             <div className="flex items-center justify-between p-6 border-b border-[var(--sf-border)]">
-              <h2 
+              <h2
                 className="text-2xl tracking-wide"
                 style={{ fontFamily: 'var(--font-bebas)' }}
               >
                 CREATE NEW CIRCLE
               </h2>
-              <button 
+              <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -365,7 +365,7 @@ export function CircleManagement() {
                 <label className="block text-sm font-medium text-[var(--sf-text-secondary)] mb-2">
                   Circle Name
                 </label>
-                <input 
+                <input
                   type="text"
                   placeholder="e.g., DevSavant Team, Marketing Professionals"
                   className="w-full px-4 py-2 border border-[var(--sf-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)]"
@@ -376,7 +376,7 @@ export function CircleManagement() {
                 <label className="block text-sm font-medium text-[var(--sf-text-secondary)] mb-2">
                   Description
                 </label>
-                <textarea 
+                <textarea
                   placeholder="Describe the purpose and focus of this circle..."
                   rows={3}
                   className="w-full px-4 py-2 border border-[var(--sf-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)]"
@@ -404,14 +404,14 @@ export function CircleManagement() {
               </div>
 
               <div className="pt-4 flex gap-3">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="flex-1"
                   onClick={() => setShowCreateModal(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   className="flex-1 bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                   onClick={() => {
                     // Handle create circle
@@ -432,7 +432,7 @@ export function CircleManagement() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-[var(--sf-border)]">
               <div>
-                <h2 
+                <h2
                   className="text-2xl tracking-wide"
                   style={{ fontFamily: 'var(--font-bebas)' }}
                 >
@@ -440,7 +440,7 @@ export function CircleManagement() {
                 </h2>
                 <p className="text-sm text-[var(--sf-text-muted)] mt-1">{currentCircle.members} total members</p>
               </div>
-              <button 
+              <button
                 onClick={closeModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -451,7 +451,7 @@ export function CircleManagement() {
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-3">
                 {mockMembers.map(member => (
-                  <div 
+                  <div
                     key={member.id}
                     className="bg-white border border-[var(--sf-border)] rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
                   >
@@ -497,7 +497,7 @@ export function CircleManagement() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-[var(--sf-border)]">
               <div>
-                <h2 
+                <h2
                   className="text-2xl tracking-wide"
                   style={{ fontFamily: 'var(--font-bebas)' }}
                 >
@@ -505,7 +505,7 @@ export function CircleManagement() {
                 </h2>
                 <p className="text-sm text-[var(--sf-text-muted)] mt-1">Add or remove members</p>
               </div>
-              <button 
+              <button
                 onClick={closeModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -515,7 +515,7 @@ export function CircleManagement() {
 
             <div className="p-6 overflow-y-auto flex-1">
               <div className="mb-6">
-                <Button 
+                <Button
                   className="bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90 mb-4"
                   onClick={() => setShowAddMembersModal(true)}
                 >
@@ -524,7 +524,7 @@ export function CircleManagement() {
                 </Button>
               </div>
 
-              <h3 
+              <h3
                 className="text-lg tracking-wide mb-4"
                 style={{ fontFamily: 'var(--font-bebas)' }}
               >
@@ -533,7 +533,7 @@ export function CircleManagement() {
 
               <div className="space-y-3">
                 {mockMembers.map(member => (
-                  <div 
+                  <div
                     key={member.id}
                     className="bg-white border border-[var(--sf-border)] rounded-lg p-4 flex items-center justify-between"
                   >
@@ -550,8 +550,8 @@ export function CircleManagement() {
                         </span>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       className="text-red-600 hover:bg-red-50 hover:text-red-700"
                       onClick={() => {
@@ -577,7 +577,7 @@ export function CircleManagement() {
               >
                 Close
               </Button>
-              <Button 
+              <Button
                 className="flex-1 bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                 onClick={closeModal}
               >
@@ -594,7 +594,7 @@ export function CircleManagement() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-[var(--sf-border)]">
               <div>
-                <h2 
+                <h2
                   className="text-2xl tracking-wide"
                   style={{ fontFamily: 'var(--font-bebas)' }}
                 >
@@ -602,7 +602,7 @@ export function CircleManagement() {
                 </h2>
                 <p className="text-sm text-[var(--sf-text-muted)] mt-1">Select users to add to this circle</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAddMembersModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -615,7 +615,7 @@ export function CircleManagement() {
               <div className="mb-6">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[var(--sf-text-muted)]" />
-                  <input 
+                  <input
                     type="text"
                     placeholder="Search users by name or email..."
                     className="w-full pl-10 pr-4 py-2 border border-[var(--sf-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)]"
@@ -626,7 +626,7 @@ export function CircleManagement() {
               {/* Available Users List */}
               <div className="space-y-3">
                 {availableUsers.map(user => (
-                  <div 
+                  <div
                     key={user.id}
                     className="bg-white border border-[var(--sf-border)] rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
                   >
@@ -641,8 +641,8 @@ export function CircleManagement() {
                         <span className="text-[var(--sf-text-secondary)]">Day {user.currentDay}</span>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                       onClick={() => {
                         alert(`${user.name} has been added to ${currentCircle.name}`);
@@ -658,8 +658,8 @@ export function CircleManagement() {
             </div>
 
             <div className="p-6 border-t border-[var(--sf-border)]">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full"
                 onClick={() => setShowAddMembersModal(false)}
               >
@@ -676,7 +676,7 @@ export function CircleManagement() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-[var(--sf-border)]">
               <div>
-                <h2 
+                <h2
                   className="text-2xl tracking-wide"
                   style={{ fontFamily: 'var(--font-bebas)' }}
                 >
@@ -684,7 +684,7 @@ export function CircleManagement() {
                 </h2>
                 <p className="text-sm text-[var(--sf-text-muted)] mt-1">Select a circle to assign to this user</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowAssignCircleModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -697,7 +697,7 @@ export function CircleManagement() {
               <div className="mb-6">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[var(--sf-text-muted)]" />
-                  <input 
+                  <input
                     type="text"
                     placeholder="Search circles by name..."
                     className="w-full pl-10 pr-4 py-2 border border-[var(--sf-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)]"
@@ -708,7 +708,7 @@ export function CircleManagement() {
               {/* Available Circles List */}
               <div className="space-y-3">
                 {allCircles.map(circle => (
-                  <div 
+                  <div
                     key={circle.id}
                     className="bg-white border border-[var(--sf-border)] rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-shadow"
                   >
@@ -723,8 +723,8 @@ export function CircleManagement() {
                         <span className="text-[var(--sf-text-secondary)]">Active: {circle.active}</span>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="bg-[var(--sf-orange)] hover:bg-[var(--sf-orange)]/90"
                       onClick={() => {
                         alert(`${userToAssign.name} has been assigned to ${circle.name}`);
@@ -740,8 +740,8 @@ export function CircleManagement() {
             </div>
 
             <div className="p-6 border-t border-[var(--sf-border)]">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full"
                 onClick={() => setShowAssignCircleModal(false)}
               >

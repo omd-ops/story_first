@@ -2,7 +2,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { GripVertical, Video, MessageCircle, Target, Sparkles, Music, FileText, User, BookOpen, MessageSquare, CheckCircle, LayoutList, LayoutGrid } from 'lucide-react';
 import { Button } from '../ui/button';
 
-type BlockType = 
+type BlockType =
   | 'intro' 
   | 'audio' 
   | 'video' 
@@ -128,7 +128,7 @@ function DraggableBlockCard({ block, index, moveBlock, isSelected, onSelect }: D
 
         {/* Block Number */}
         <div className="text-center mb-3">
-          <span 
+          <span
             className="text-3xl"
             style={{ fontFamily: 'var(--font-bebas)' }}
           >
@@ -182,7 +182,7 @@ export function HorizontalBlockCanvas({ blocks, onReorder, selectedBlockId, onSe
   return (
     <div className="bg-white rounded-lg border border-[var(--sf-border)] p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 
+        <h3
           className="text-lg tracking-wide"
           style={{ fontFamily: 'var(--font-bebas)' }}
         >
@@ -192,7 +192,7 @@ export function HorizontalBlockCanvas({ blocks, onReorder, selectedBlockId, onSe
           Drag blocks horizontally to reorder
         </p>
       </div>
-      
+
       {blocks.length === 0 ? (
         <div className="text-center py-12 text-[var(--sf-text-muted)]">
           <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -218,7 +218,7 @@ export function HorizontalBlockCanvas({ blocks, onReorder, selectedBlockId, onSe
 
           {/* Progress Line */}
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded-full">
-            <div 
+            <div
               className="h-1 bg-[var(--sf-orange)] rounded-full transition-all"
               style={{ width: blocks.length > 0 ? '100%' : '0%' }}
             />
