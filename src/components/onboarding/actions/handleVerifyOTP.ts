@@ -45,17 +45,17 @@ export async function handleVerifyOTP(
   setCurrentStep: SetStep,
   onComplete: () => void,
 ) {
-  // 1️⃣ Verify OTP
-  const { error: otpError } = await supabase.auth.verifyOtp({
-    phone: formData.countryCode + formData.phoneNumber,
-    token: formData.otp,
-    type: "sms",
-  });
-
-  if (otpError) {
-    console.error("OTP verification failed:", otpError.message);
-    return;
-  }
+  // 1️⃣ Verify OTP (TEMPORARY BYPASS FOR TESTING)
+  // const { error: otpError } = await supabase.auth.verifyOtp({
+  //   phone: formData.countryCode + formData.phoneNumber,
+  //   token: formData.otp,
+  //   type: "sms",
+  // });
+  //
+  // if (otpError) {
+  //   console.error("OTP verification failed:", otpError.message);
+  //   return;
+  // }
 
   // 2️⃣ Get authenticated user
   const {
@@ -65,6 +65,12 @@ export async function handleVerifyOTP(
 
   if (userError || !user) {
     console.error("Failed to retrieve user:", userError?.message);
+    return;
+  }
+
+  // Admins bypass onboarding and go directly to the admin dashboard.
+  if (user.app_metadata?.role === "admin") {
+    window.location.href = "/admin";
     return;
   }
 

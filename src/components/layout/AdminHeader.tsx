@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Clock,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "../ui/button";
@@ -19,9 +19,32 @@ interface AdminHeaderProps {
   onNavigate?: (screen: string) => void;
 }
 
+type NotificationItem = {
+  id: string;
+  type: "approval" | "info" | "error";
+  title: string;
+  message: string;
+  createdAt: string;
+  unread: boolean;
+};
+
+function formatRelativeTime(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "just now";
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin} minute${diffMin === 1 ? "" : "s"} ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hour${diffHr === 1 ? "" : "s"} ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay} day${diffDay === 1 ? "" : "s"} ago`;
+}
+
 export function AdminHeader({ onNavigate }: AdminHeaderProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -29,66 +52,30 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
     router.push("/");
   };
 
-  // Mock notifications
-  const notifications = [
-    {
-      id: 1,
-      type: "approval",
-      icon: UserPlus,
-      iconBg: "bg-orange-100",
-      iconColor: "text-[var(--sf-orange)]",
-      title: "New User Pending Approval",
-      message: "Sarah Johnson is waiting for admin approval",
-      time: "5 minutes ago",
-      unread: true,
-    },
-    {
-      id: 2,
-      type: "approval",
-      icon: UserPlus,
-      iconBg: "bg-orange-100",
-      iconColor: "text-[var(--sf-orange)]",
-      title: "New User Pending Approval",
-      message: "Mike Chen is waiting for admin approval",
-      time: "12 minutes ago",
-      unread: true,
-    },
-    {
-      id: 3,
-      type: "slack",
-      icon: CheckCircle,
-      iconBg: "bg-green-100",
-      iconColor: "text-[var(--sf-green)]",
-      title: "Slack Notification Sent",
-      message: "New signup alert sent to #admin-notifications",
-      time: "1 hour ago",
-      unread: false,
-    },
-    {
-      id: 4,
-      type: "approval",
-      icon: UserPlus,
-      iconBg: "bg-orange-100",
-      iconColor: "text-[var(--sf-orange)]",
-      title: "New User Pending Approval",
-      message: "Emma Davis is waiting for admin approval",
-      time: "2 hours ago",
-      unread: false,
-    },
-    {
-      id: 5,
-      type: "slack",
-      icon: CheckCircle,
-      iconBg: "bg-green-100",
-      iconColor: "text-[var(--sf-green)]",
-      title: "Slack Notification Sent",
-      message: "User approval notification sent to #admin-notifications",
-      time: "3 hours ago",
-      unread: false,
-    },
-  ];
+  const loadNotifications = async () => {
+    try {
+      const res = await fetch("/api/admin/notifications", { cache: "no-store" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) return;
+      setNotifications(Array.isArray(json.items) ? json.items : []);
+    } catch {
+      // Keep UI resilient; notification modal can stay empty on failure.
+    }
+  };
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  useEffect(() => {
+    void loadNotifications();
+    const timer = setInterval(() => {
+      void loadNotifications();
+    }, 15000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const unreadCount = useMemo(
+    () => notifications.filter((notification) => notification.unread).length,
+    [notifications],
+  );
 
   return (
     <>
@@ -106,7 +93,6 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Notifications */}
           <button
             onClick={() => setShowNotificationModal(true)}
             className="relative p-2 hover:bg-gray-100 transition-colors"
@@ -117,7 +103,6 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
             )}
           </button>
 
-          {/* Admin Profile */}
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -126,9 +111,7 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
               <div className="w-8 h-8 bg-[var(--sf-orange)] flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
-              <span className="text-sm text-[var(--sf-text-primary)]">
-                Admin
-              </span>
+              <span className="text-sm text-[var(--sf-text-primary)]">Admin</span>
               <ChevronDown className="w-4 h-4 text-[var(--sf-text-secondary)]" />
             </button>
 
@@ -156,7 +139,6 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
         </div>
       </header>
 
-      {/* Notifications Modal */}
       {showNotificationModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white shadow-xl w-full max-w-xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
@@ -169,8 +151,7 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
                   Notifications
                 </h2>
                 <p className="text-sm text-[var(--sf-text-muted)] mt-1">
-                  {unreadCount} unread notification
-                  {unreadCount !== 1 ? "s" : ""}
+                  {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
                 </p>
               </div>
               <button
@@ -185,14 +166,32 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                   <Bell className="w-12 h-12 text-gray-300 mb-3" />
-                  <p className="text-[var(--sf-text-secondary)]">
-                    No notifications
-                  </p>
+                  <p className="text-[var(--sf-text-secondary)]">No notifications</p>
                 </div>
               ) : (
                 <div className="divide-y divide-[var(--sf-border)]">
                   {notifications.map((notification) => {
-                    const IconComponent = notification.icon;
+                    const IconComponent =
+                      notification.type === "error"
+                        ? AlertCircle
+                        : notification.type === "approval"
+                          ? UserPlus
+                          : CheckCircle;
+
+                    const iconBg =
+                      notification.type === "error"
+                        ? "bg-red-100"
+                        : notification.type === "approval"
+                          ? "bg-orange-100"
+                          : "bg-green-100";
+
+                    const iconColor =
+                      notification.type === "error"
+                        ? "text-[var(--sf-red)]"
+                        : notification.type === "approval"
+                          ? "text-[var(--sf-orange)]"
+                          : "text-[var(--sf-green)]";
+
                     return (
                       <div
                         key={notification.id}
@@ -202,11 +201,9 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
                       >
                         <div className="flex gap-3">
                           <div
-                            className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${notification.iconBg}`}
+                            className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${iconBg}`}
                           >
-                            <IconComponent
-                              className={`w-5 h-5 ${notification.iconColor}`}
-                            />
+                            <IconComponent className={`w-5 h-5 ${iconColor}`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2 mb-1">
@@ -222,7 +219,7 @@ export function AdminHeader({ onNavigate }: AdminHeaderProps) {
                             </p>
                             <p className="text-xs text-[var(--sf-text-muted)] flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {notification.time}
+                              {formatRelativeTime(notification.createdAt)}
                             </p>
                           </div>
                         </div>

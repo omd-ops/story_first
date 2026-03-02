@@ -19,6 +19,7 @@ import { getMaskedPhone } from "./onboarding/utils/getMaskedPhone";
 import { getStepNumber } from "./onboarding/utils/getStepNumber";
 import { OnboardingFormData, OnboardingStep } from "./onboarding/types";
 import { scheduleReminder } from "@/lib/reminders";
+import { supabase } from "@/lib/supabase/client";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -110,34 +111,33 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     setIsSchedulingReminder(true);
 
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user?.id) {
+        throw new Error("Please login again before saving reminder settings.");
+      }
+
       const response = await scheduleReminder({
+        userId: user.id,
         phone: phoneForReminder,
+        fullName: formData.fullName,
+        email: formData.email,
+        displayName: formData.displayName,
+        signupGoal: formData.selectedGoals.join(", "),
         scheduleDays: formData.scheduleDays,
         scheduleTime: formData.scheduleTime,
         timezone: formData.timezone,
       });
 
-      const hasTwilioFailure = response.twilioSuccess === false;
       setScheduleStatus({
-        type: response.success && !hasTwilioFailure ? "success" : "error",
+        type: response.success ? "success" : "error",
         message: response.message,
       });
       setScheduleProviderErrors(response.providerErrors ?? []);
 
-      if (response.success && response.twilioSuccess !== false) {
-        // Send welcome SMS with magic link
-        try {
-          const smsRes = await fetch("/api/reminders/send-welcome-sms", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: phoneForReminder }),
-          });
-          if (!smsRes.ok) {
-            console.warn("Welcome SMS failed:", await smsRes.text());
-          }
-        } catch (smsErr) {
-          console.error("Welcome SMS error:", smsErr);
-        }
+      if (response.success) {
         onComplete();
       }
     } catch (error) {

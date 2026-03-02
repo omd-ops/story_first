@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/reminders/cron-active-magic",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/reminders/weekly-ai",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/reminders/cleanup",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

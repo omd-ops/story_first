@@ -2,27 +2,44 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Next: dev",
+      "name": "Next.js: dev server",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Next.js: debug server (Node)",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 9229,
       "console": "integratedTerminal",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**"],
+      "envFile": "${workspaceFolder}/.env"
     },
     {
-      "name": "Attach to Next.js",
+      "name": "Next.js: Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "name": "Run local cron loop (15m)",
       "type": "node",
-      "request": "attach",
-      "port": 9229,
-      "address": "localhost",
-      "restart": false,
-      "protocol": "inspector",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/runLocalCronEvery15m.mjs",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/.env",
       "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Next.js full-stack",
+      "configurations": ["Next.js: debug server (Node)", "Next.js: Chrome"]
     }
   ]
 }

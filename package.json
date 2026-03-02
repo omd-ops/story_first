@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "admin:create": "node scripts/createAdminByPhone.js",
+    "cron:local:15m": "node scripts/runLocalCronEvery15m.mjs"
   },
   "dependencies": {
     "@mux/mux-node": "^3.2.0",
@@ -26,11 +28,11 @@
     "next-themes": "^0.4.6",
     "pg": "^8.19.0",
     "radix-ui": "^1.4.3",
-    "react": "19.2.3",
+    "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "react-dom": "19.2.3",
+    "react-dom": "^18.3.1",
     "react-hook-form": "^7.45.2",
     "react-resizable-panels": "^4.6.5",
     "reactflow": "^11.1.22",

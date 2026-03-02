@@ -1,37 +1,78 @@
 import { PageHeader } from '../shared/PageHeader';
 import { Button } from '../ui/button';
-import { ArrowUp, ArrowDown, Send, StickyNote, Check, X } from 'lucide-react';
-import { useState } from 'react';
+import { Check, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
-interface WaitlistPerson {
-  id: number;
-  name: string;
-  email: string;
-  signupDate: string;
-  priority: number;
-  notes: string;
+type QueuePerson = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone: string;
+  status: string;
+  signupDate: string | null;
+  scheduleDays: string[];
+  scheduleTime: { hour: number; minute: number; period: string } | null;
+  timezone: string | null;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+};
+
+function formatDate(dateInput: string | null) {
+  if (!dateInput) return '-';
+  const date = new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+}
+
+function formatSchedule(person: QueuePerson) {
+  if (!person.scheduleTime || person.scheduleDays.length === 0) {
+    return 'Not set';
+  }
+
+  return `${person.scheduleDays.join(', ')} • ${String(person.scheduleTime.hour)}:${String(
+    person.scheduleTime.minute,
+  ).padStart(2, '0')} ${person.scheduleTime.period}${person.timezone ? ` (${person.timezone})` : ''}`;
 }
 
 export function SignupQueue() {
-  const [waitlist, setWaitlist] = useState<WaitlistPerson[]>([
-    { id: 1, name: 'Jennifer Lopez', email: 'jennifer.l@email.com', signupDate: 'Feb 1, 2026', priority: 1, notes: 'Referred by Sarah J.' },
-    { id: 2, name: 'Marcus Smith', email: 'marcus.s@email.com', signupDate: 'Feb 2, 2026', priority: 2, notes: '' },
-    { id: 3, name: 'Priya Patel', email: 'priya.p@email.com', signupDate: 'Feb 3, 2026', priority: 3, notes: 'Premium interest' },
-    { id: 4, name: 'James Brown', email: 'james.b@email.com', signupDate: 'Feb 4, 2026', priority: 4, notes: '' },
-    { id: 5, name: 'Sofia Garcia', email: 'sofia.g@email.com', signupDate: 'Feb 5, 2026', priority: 5, notes: '' },
-  ]);
+  const [waitlist, setWaitlist] = useState<QueuePerson[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [modalAction, setModalAction] = useState<'accept' | 'reject'>('accept');
-  const [selectedPerson, setSelectedPerson] = useState<WaitlistPerson | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<QueuePerson | null>(null);
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  // Note editing state
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-  const [noteValue, setNoteValue] = useState('');
+  const pendingCount = useMemo(() => waitlist.length, [waitlist]);
 
-  const openModal = (person: WaitlistPerson, action: 'accept' | 'reject') => {
+  const loadQueue = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/signup-queue', { cache: 'no-store' });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json?.message ?? 'Failed to load signup queue');
+      }
+      setWaitlist(Array.isArray(json.items) ? json.items : []);
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : 'Failed to load signup queue';
+      setError(messageText);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadQueue();
+  }, []);
+
+  const openModal = (person: QueuePerson, action: 'accept' | 'reject') => {
     setSelectedPerson(person);
     setModalAction(action);
     setShowModal(true);
@@ -42,311 +83,198 @@ export function SignupQueue() {
     setShowModal(false);
     setSelectedPerson(null);
     setMessage('');
+    setSubmitting(false);
   };
 
-  const confirmAction = () => {
+  const confirmAction = async () => {
     if (!selectedPerson) return;
 
-    // In a real app, this would make an API call with the message
-    console.log(`${modalAction === 'accept' ? 'Accepting' : 'Rejecting'} ${selectedPerson.email} with message: ${message}`);
-    
-    setWaitlist(prev => prev.filter(person => person.id !== selectedPerson.id));
-    closeModal();
-  };
+    setSubmitting(true);
+    setError(null);
 
-  const handleAccept = (person: WaitlistPerson) => {
-    openModal(person, 'accept');
-  };
+    try {
+      const endpoint =
+        modalAction === 'accept'
+          ? '/api/admin/signup-queue/approve'
+          : '/api/admin/signup-queue/reject';
 
-  const handleReject = (person: WaitlistPerson) => {
-    openModal(person, 'reject');
-  };
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedPerson.id, message }),
+      });
 
-  const handleMoveUp = (id: number, currentPriority: number) => {
-    if (currentPriority === 1) return;
-    
-    setWaitlist(prev => prev.map(person => {
-      if (person.id === id) {
-        return { ...person, priority: currentPriority - 1 };
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) {
+        throw new Error(json?.message ?? 'Failed to update user status');
       }
-      if (person.priority === currentPriority - 1) {
-        return { ...person, priority: currentPriority };
-      }
-      return person;
-    }).sort((a, b) => a.priority - b.priority));
-  };
 
-  const handleMoveDown = (id: number, currentPriority: number) => {
-    if (currentPriority === waitlist.length) return;
-    
-    setWaitlist(prev => prev.map(person => {
-      if (person.id === id) {
-        return { ...person, priority: currentPriority + 1 };
-      }
-      if (person.priority === currentPriority + 1) {
-        return { ...person, priority: currentPriority };
-      }
-      return person;
-    }).sort((a, b) => a.priority - b.priority));
-  };
-
-  const handleNoteEdit = (id: number) => {
-    const person = waitlist.find(p => p.id === id);
-    if (person) {
-      setEditingNoteId(id);
-      setNoteValue(person.notes);
+      setWaitlist((prev) => prev.filter((person) => person.id !== selectedPerson.id));
+      closeModal();
+    } catch (err) {
+      const messageText = err instanceof Error ? err.message : 'Failed to update user status';
+      setError(messageText);
+      setSubmitting(false);
     }
-  };
-
-  const handleNoteSave = (id: number) => {
-    if (editingNoteId === null) return;
-    
-    setWaitlist(prev => prev.map(person => {
-      if (person.id === id) {
-        return { ...person, notes: noteValue };
-      }
-      return person;
-    }));
-    setEditingNoteId(null);
-    setNoteValue('');
-  };
-
-  const handleNoteCancel = () => {
-    setEditingNoteId(null);
-    setNoteValue('');
   };
 
   return (
     <div>
-      <PageHeader 
+      <PageHeader
         title="Signup Queue"
-        subtitle="Manage waitlist priority and send activation links"
-        actions={
-          <Button className="bg-[var(--sf-green)] hover:bg-[var(--sf-green)]/90">
-            <Send className="w-4 h-4 mr-2" />
-            Bulk Send (Top 10)
-          </Button>
-        }
+        subtitle="Review pending users. Approve to activate and send SMS."
       />
 
+      {error && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white rounded-lg border border-[var(--sf-border)] overflow-hidden">
+        <div className="px-6 py-4 border-b border-[var(--sf-border)] text-sm text-[var(--sf-text-secondary)]">
+          Pending users: <span className="text-[var(--sf-text-primary)] font-semibold">{pendingCount}</span>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-[var(--sf-border)]">
               <tr>
-                <th 
-                  className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]"
-                  style={{ fontFamily: 'var(--font-bebas)' }}
-                >
-                  Priority
-                </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]"
-                  style={{ fontFamily: 'var(--font-bebas)' }}
-                >
+                <th className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]" style={{ fontFamily: 'var(--font-bebas)' }}>
                   Name
                 </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]"
-                  style={{ fontFamily: 'var(--font-bebas)' }}
-                >
-                  Email
+                <th className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]" style={{ fontFamily: 'var(--font-bebas)' }}>
+                  Contact
                 </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]"
-                  style={{ fontFamily: 'var(--font-bebas)' }}
-                >
+                <th className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]" style={{ fontFamily: 'var(--font-bebas)' }}>
                   Signup Date
                 </th>
-                <th 
-                  className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]"
-                  style={{ fontFamily: 'var(--font-bebas)' }}
-                >
-                  Notes
+                <th className="px-6 py-3 text-left text-xs tracking-wider text-[var(--sf-text-secondary)]" style={{ fontFamily: 'var(--font-bebas)' }}>
+                  Reminder Schedule
                 </th>
-                <th 
-                  className="px-6 py-3 text-right text-xs tracking-wider text-[var(--sf-text-secondary)]"
-                  style={{ fontFamily: 'var(--font-bebas)' }}
-                >
+                <th className="px-6 py-3 text-right text-xs tracking-wider text-[var(--sf-text-secondary)]" style={{ fontFamily: 'var(--font-bebas)' }}>
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--sf-border)]">
-              {waitlist.map(person => (
-                <tr key={person.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <span 
-                        className="text-2xl text-[var(--sf-text-primary)]"
-                        style={{ fontFamily: 'var(--font-bebas)' }}
-                      >
-                        {person.priority}
-                      </span>
-                      <div className="flex flex-col gap-1">
-                        <button 
-                          className="p-0.5 hover:bg-gray-200 rounded transition-colors"
-                          disabled={person.priority === 1}
-                          onClick={() => handleMoveUp(person.id, person.priority)}
-                        >
-                          <ArrowUp className="w-3 h-3 text-[var(--sf-text-secondary)]" />
-                        </button>
-                        <button 
-                          className="p-0.5 hover:bg-gray-200 rounded transition-colors"
-                          disabled={person.priority === waitlist.length}
-                          onClick={() => handleMoveDown(person.id, person.priority)}
-                        >
-                          <ArrowDown className="w-3 h-3 text-[var(--sf-text-secondary)]" />
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <p className="text-[var(--sf-text-primary)] font-medium">{person.name}</p>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sf-text-secondary)]">
-                    {person.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sf-text-secondary)]">
-                    {person.signupDate}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      {editingNoteId === person.id ? (
-                        <>
-                          <textarea
-                            className="w-full px-4 py-2 border border-[var(--sf-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)] resize-none"
-                            value={noteValue}
-                            onChange={(e) => setNoteValue(e.target.value)}
-                            rows={1}
-                            placeholder="Add a note..."
-                          />
-                          <Button
-                            size="sm"
-                            className="bg-[var(--sf-green)] hover:bg-[var(--sf-green)]/90"
-                            onClick={() => handleNoteSave(person.id)}
-                          >
-                            <Check className="w-3 h-3 mr-1" />
-                            Save
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-red-300 text-red-600 hover:bg-red-50"
-                            onClick={handleNoteCancel}
-                          >
-                            <X className="w-3 h-3 mr-1" />
-                            Cancel
-                          </Button>
-                        </>
-                      ) : person.notes ? (
-                        <>
-                          <StickyNote className="w-4 h-4 text-[var(--sf-orange)]" />
-                          <span className="text-sm text-[var(--sf-text-primary)]">{person.notes}</span>
-                        </>
-                      ) : (
-                        <button 
-                          className="flex items-center gap-1.5 text-sm text-[var(--sf-text-muted)] hover:text-[var(--sf-text-primary)] transition-colors" 
-                          onClick={() => handleNoteEdit(person.id)}
-                        >
-                          <StickyNote className="w-4 h-4" />
-                          Add note
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button 
-                        size="sm"
-                        className="bg-[var(--sf-green)] hover:bg-[var(--sf-green)]/90"
-                        onClick={() => handleAccept(person)}
-                      >
-                        <Check className="w-3 h-3 mr-1" />
-                        Accept
-                      </Button>
-                      <Button 
-                        size="sm"
-                        variant="outline"
-                        className="border-red-300 text-red-600 hover:bg-red-50"
-                        onClick={() => handleReject(person)}
-                      >
-                        <X className="w-3 h-3 mr-1" />
-                        Reject
-                      </Button>
-                    </div>
+              {loading && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-6 text-sm text-[var(--sf-text-secondary)]">
+                    Loading signup queue...
                   </td>
                 </tr>
-              ))}
+              )}
+
+              {!loading && waitlist.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-6 text-sm text-[var(--sf-text-secondary)]">
+                    No pending users.
+                  </td>
+                </tr>
+              )}
+
+              {!loading &&
+                waitlist.map((person) => (
+                  <tr key={person.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <p className="text-[var(--sf-text-primary)] font-medium">{person.name || 'Unknown User'}</p>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[var(--sf-text-secondary)]">
+                      <p>{person.email || '-'}</p>
+                      <p>{person.phone}</p>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sf-text-secondary)]">
+                      {formatDate(person.signupDate)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[var(--sf-text-secondary)] max-w-md">
+                      {formatSchedule(person)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-[var(--sf-green)] hover:bg-[var(--sf-green)]/90"
+                          onClick={() => openModal(person, 'accept')}
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          onClick={() => openModal(person, 'reject')}
+                        >
+                          <X className="w-3 h-3 mr-1" />
+                          Reject
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && selectedPerson && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
             <div className="p-6 border-b border-[var(--sf-border)]">
-              <h2 
-                className="text-2xl tracking-wide"
-                style={{ fontFamily: 'var(--font-bebas)' }}
-              >
-                {modalAction === 'accept' ? 'ACCEPT USER' : 'REJECT USER'}
+              <h2 className="text-2xl tracking-wide" style={{ fontFamily: 'var(--font-bebas)' }}>
+                {modalAction === 'accept' ? 'APPROVE USER' : 'REJECT USER'}
               </h2>
             </div>
-            
+
             <div className="p-6 space-y-4">
               <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1">
-                  <p className="font-medium text-[var(--sf-text-primary)]">{selectedPerson.name}</p>
-                  <p className="text-sm text-[var(--sf-text-secondary)]">{selectedPerson.email}</p>
+                  <p className="font-medium text-[var(--sf-text-primary)]">{selectedPerson.name || 'Unknown User'}</p>
+                  <p className="text-sm text-[var(--sf-text-secondary)]">{selectedPerson.phone}</p>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm text-[var(--sf-text-secondary)] mb-2">
-                  Message to user (optional)
+                  Admin message (optional)
                 </label>
                 <textarea
                   className="w-full px-4 py-2 border border-[var(--sf-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--sf-orange)] resize-none"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
-                  placeholder={modalAction === 'accept' 
-                    ? "Add a welcome message (will be sent via email)..." 
-                    : "Add a reason for rejection (optional)..."}
+                  placeholder={
+                    modalAction === 'accept'
+                      ? 'Optional note to include in the approval SMS...'
+                      : 'Optional reason for rejection...'
+                  }
                 />
-                <p className="text-xs text-[var(--sf-text-muted)] mt-2">
-                  {modalAction === 'accept' 
-                    ? "This message will be included in the activation email" 
-                    : "This message will be included in the notification email"}
-                </p>
               </div>
             </div>
 
             <div className="p-6 border-t border-[var(--sf-border)] flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={closeModal}
-              >
+              <Button variant="outline" onClick={closeModal} disabled={submitting}>
                 Cancel
               </Button>
               <Button
-                className={modalAction === 'accept' 
-                  ? 'bg-[var(--sf-green)] hover:bg-[var(--sf-green)]/90' 
-                  : 'bg-red-600 hover:bg-red-700'}
+                className={
+                  modalAction === 'accept'
+                    ? 'bg-[var(--sf-green)] hover:bg-[var(--sf-green)]/90'
+                    : 'bg-red-600 hover:bg-red-700'
+                }
                 onClick={confirmAction}
+                disabled={submitting}
               >
                 {modalAction === 'accept' ? (
                   <>
                     <Check className="w-4 h-4 mr-2" />
-                    Accept & Send Link
+                    {submitting ? 'Approving...' : 'Approve & Send SMS'}
                   </>
                 ) : (
                   <>
                     <X className="w-4 h-4 mr-2" />
-                    Reject User
+                    {submitting ? 'Rejecting...' : 'Reject User'}
                   </>
                 )}
               </Button>

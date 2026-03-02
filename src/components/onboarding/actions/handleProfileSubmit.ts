@@ -19,10 +19,11 @@ export async function handleProfileSubmit(
   const { error } = await supabase
     .from("users")
     .update({
+      phone: `${formData.countryCode}${formData.phoneNumber}`,
       name: formData.fullName,
       display_name: formData.displayName,
       email: formData.email,
-      status: "active",
+      status: "pending",
     })
     .eq("id", user.id);
 

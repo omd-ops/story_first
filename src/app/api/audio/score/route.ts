@@ -109,7 +109,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        score: 6,
+        score: 11,
         reasoning: 'Mock score fallback (scoring providers failed).',
         model: 'mock',
         provider: 'mock',
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
     const message = err instanceof Error ? err.message : 'Scoring error';
     return NextResponse.json(
       {
-        score: 6,
+        score: 11,
         reasoning: 'Mock score fallback (route exception).',
         model: 'mock',
         provider: 'mock',

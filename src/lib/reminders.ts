@@ -1,5 +1,10 @@
 export interface ReminderPayload {
+  userId: string;
   phone: string;
+  fullName: string;
+  email?: string;
+  displayName?: string;
+  signupGoal?: string;
   scheduleDays: string[];
   scheduleTime: {
     hour: number;
