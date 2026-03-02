@@ -1,6 +1,5 @@
 import { useDrag, useDrop } from 'react-dnd';
-import { GripVertical, Video, MessageCircle, Target, Sparkles, Music, FileText, User, BookOpen, MessageSquare, CheckCircle, LayoutList, LayoutGrid } from 'lucide-react';
-import { Button } from '../ui/button';
+import { GripVertical, Video, MessageCircle, Target, Sparkles, Music, FileText, User, CheckCircle } from 'lucide-react';
 
 type BlockType =
   | 'intro' 
@@ -41,6 +40,15 @@ interface DraggableBlockCardProps {
 }
 
 const ITEM_TYPE = 'BLOCK';
+const BLOCK_ICONS: Record<BlockType, typeof Sparkles> = {
+  'intro': Sparkles,
+  'audio': Music,
+  'video': Video,
+  'personalization': User,
+  'qa': MessageCircle,
+  'challenge': Target,
+  'wrap-up': CheckCircle,
+};
 
 function DraggableBlockCard({ block, index, moveBlock, isSelected, onSelect }: DraggableBlockCardProps) {
   const [{ isDragging }, drag] = useDrag({
@@ -60,18 +68,6 @@ function DraggableBlockCard({ block, index, moveBlock, isSelected, onSelect }: D
       }
     },
   });
-
-  const getBlockIcon = (type: BlockType) => {
-    switch (type) {
-      case 'intro': return Sparkles;
-      case 'audio': return Music;
-      case 'video': return Video;
-      case 'personalization': return User;
-      case 'qa': return MessageCircle;
-      case 'challenge': return Target;
-      case 'wrap-up': return CheckCircle;
-    }
-  };
 
   const getBlockColor = (type: BlockType) => {
     switch (type) {
@@ -103,11 +99,13 @@ function DraggableBlockCard({ block, index, moveBlock, isSelected, onSelect }: D
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const Icon = getBlockIcon(block.type);
+  const IconComponent = BLOCK_ICONS[block.type];
 
   return (
     <div
-      ref={(node) => drag(drop(node))}
+      ref={(node) => {
+        drag(drop(node));
+      }}
       className={`
         flex-shrink-0 w-64 cursor-move transition-all
         ${isDragging ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}
@@ -139,7 +137,7 @@ function DraggableBlockCard({ block, index, moveBlock, isSelected, onSelect }: D
         {/* Icon */}
         <div className="flex items-center justify-center mb-3">
           <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-white/60">
-            <Icon className="w-6 h-6" />
+            <IconComponent className="w-6 h-6" />
           </div>
         </div>
 

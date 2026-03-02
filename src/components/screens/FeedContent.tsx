@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { PageHeader } from '../shared/PageHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { Button } from '../ui/button';
-import { Plus, Edit, Eye, Trash2, Image, Upload, X, Pin, PinOff } from 'lucide-react';
+import { Plus, Edit, Eye, Trash2, Image as ImageIcon, Upload, X, Pin, PinOff } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -315,7 +315,7 @@ export function FeedContent() {
                 />
               ) : post.hasImage ? (
                 <div className="h-48 bg-gradient-to-br from-[var(--sf-orange)] to-[#FFD93D] flex items-center justify-center">
-                  <Image className="w-12 h-12 text-white/50" />
+                  <ImageIcon className="w-12 h-12 text-white/50" />
                 </div>
               ) : (
                 <div className="h-48 bg-gray-100 flex items-center justify-center">

@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "prisma generate",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "lint": "eslint",
     "admin:create": "node scripts/createAdminByPhone.js",
     "cron:local:15m": "node scripts/runLocalCronEvery15m.mjs"

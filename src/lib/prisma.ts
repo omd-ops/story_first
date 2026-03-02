@@ -2,7 +2,7 @@
 import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client/index";
+import { PrismaClient } from "@prisma/client";
 
 // Prisma may fail to initialize if DATABASE_URL (or whichever datasource is
 // configured) is absent.  The original constructor throws during import,

@@ -50,36 +50,40 @@ interface FlowCanvasProps {
   onSelectBlock: (id: string) => void;
 }
 
-function CustomNode({ data }: { data: any }) {
-  const getBlockIcon = (type: BlockType) => {
-    switch (type) {
-      case 'intro': return Sparkles;
-      case 'customized-message': return MessageSquare;
-      case 'audio': return Music;
-      case 'video': return Video;
-      case 'content-piece': return FileText;
-      case 'personalization': return User;
-      case 'direct-instruction': return BookOpen;
-      case 'qa': return MessageCircle;
-      case 'challenge': return Target;
-      case 'wrap-up': return CheckCircle;
-    }
-  };
+const BLOCK_ICONS: Record<BlockType, typeof Sparkles> = {
+  'intro': Sparkles,
+  'customized-message': MessageSquare,
+  'audio': Music,
+  'video': Video,
+  'content-piece': FileText,
+  'personalization': User,
+  'direct-instruction': BookOpen,
+  'qa': MessageCircle,
+  'challenge': Target,
+  'wrap-up': CheckCircle,
+};
 
-  const getBlockColor = (type: BlockType) => {
-    switch (type) {
-      case 'intro': return { bg: '#F3E5F5', border: '#9C27B0' };
-      case 'customized-message': return { bg: '#FCE4EC', border: '#E91E63' };
-      case 'audio': return { bg: '#E8F5E9', border: '#4CAF50' };
-      case 'video': return { bg: '#FFF4E6', border: '#FF9800' };
-      case 'content-piece': return { bg: '#E8EAF6', border: '#3F51B5' };
-      case 'personalization': return { bg: '#E0F2F1', border: '#009688' };
-      case 'direct-instruction': return { bg: '#FFF8E1', border: '#FFC107' };
-      case 'qa': return { bg: '#E3F2FD', border: '#2196F3' };
-      case 'challenge': return { bg: '#FFFBE6', border: '#FFD93D' };
-      case 'wrap-up': return { bg: '#E8F5E9', border: '#10B981' };
-    }
-  };
+const BLOCK_COLORS: Record<BlockType, { bg: string; border: string }> = {
+  'intro': { bg: '#F3E5F5', border: '#9C27B0' },
+  'customized-message': { bg: '#FCE4EC', border: '#E91E63' },
+  'audio': { bg: '#E8F5E9', border: '#4CAF50' },
+  'video': { bg: '#FFF4E6', border: '#FF9800' },
+  'content-piece': { bg: '#E8EAF6', border: '#3F51B5' },
+  'personalization': { bg: '#E0F2F1', border: '#009688' },
+  'direct-instruction': { bg: '#FFF8E1', border: '#FFC107' },
+  'qa': { bg: '#E3F2FD', border: '#2196F3' },
+  'challenge': { bg: '#FFFBE6', border: '#FFD93D' },
+  'wrap-up': { bg: '#E8F5E9', border: '#10B981' },
+};
+
+interface CustomNodeData {
+  label: string;
+  type: string;
+  blockType: BlockType;
+  duration: number;
+}
+
+function CustomNode({ data }: { data: CustomNodeData }) {
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -87,8 +91,8 @@ function CustomNode({ data }: { data: any }) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const Icon = getBlockIcon(data.blockType);
-  const colors = getBlockColor(data.blockType);
+  const IconComponent = BLOCK_ICONS[data.blockType];
+  const colors = BLOCK_COLORS[data.blockType];
 
   return (
     <div
@@ -113,7 +117,7 @@ function CustomNode({ data }: { data: any }) {
 
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.6)' }}>
-          <Icon className="w-5 h-5" style={{ color: colors.border }} />
+          <IconComponent className="w-5 h-5" style={{ color: colors.border }} />
         </div>
         <div className="flex-1">
           <div className="font-medium text-sm" style={{ color: '#1a1a1a' }}>{data.label}</div>

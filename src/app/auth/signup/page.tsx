@@ -4,6 +4,7 @@
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SignupPage() {
     const router = useRouter();
@@ -147,7 +148,7 @@ export default function SignupPage() {
                 </button>
                 <p className="text-center text-sm text-gray-600">
                     {/* Already have an account? <a href="/auth/login" className="text-indigo-600 hover:underline">Log in</a> */}
-                    Already have an account? <a href="/" className="text-indigo-600 hover:underline">Log in</a>
+                    Already have an account? <Link href="/" className="text-indigo-600 hover:underline">Log in</Link>
                 </p>
             </form>
         </main>
